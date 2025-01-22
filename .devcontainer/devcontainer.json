@@ -1,6 +1,6 @@
 {
 	"name": "SSS Django Development",
-	"image": "dbcawa/docker_app_dev:gokart-sss-django_dev_latest",
+	"image": "ghcr.io/dbca-wa/docker-app-dev:gokart-sss-django_dev_latest",
 	"remoteUser": "container",
 	"workspaceFolder": "/data/data/projects/gokart-sss-django/",
 	"mounts": ["type=bind,source=/data/,target=/data/",
