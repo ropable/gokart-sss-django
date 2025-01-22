@@ -2669,10 +2669,7 @@
         caller = caller || "showprogress"
         var vm = this;
         var spatial_data = null;
-
-        if (vm.target_feature && vm.target_feature.spatial_data) {
-            spatial_data = vm.target_feature.spatial_data;
-        }
+        
         if (targetFeature && targetFeature.spatial_data) {
             spatial_data = targetFeature.spatial_data;
         }
