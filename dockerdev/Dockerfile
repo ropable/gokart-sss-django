@@ -1,5 +1,5 @@
 # Prepare the base environment.
-FROM ghcr.io/dbcawa/gokart-sss-django:latest as builder_base_gokart-sss-django_dev
+FROM ghcr.io/dbca-wa/gokart-sss-django:latest as builder_base_gokart-sss-django_dev
 USER root
 RUN apt-get update
 RUN apt-get install --no-install-recommends -y patch
