@@ -1439,6 +1439,12 @@
                                         messages:[
                                             "The calculated burnt area contains duplicate areas. Please contact fire_systems_support@dbca.wa.gov.au for assistance.",
                                             " ",
+                                            "The sum of the burning areas in individual layers is " + Math.abs(feature_area["other_area"]).toFixed(2) + " greater than the total burning area " + feature_area["total_area"].toFixed(2) + ".",
+                                            "The features from the following layers are overlaped.",
+                                            [["",1],[getLayerId("cddp:legislated_lands_and_waters"),11]],
+                                            [["",1],[getLayerId("cddp:dept_interest_lands_and_waters"),11]],
+                                            [["",1],[getLayerId("cddp:other_tenures"),11]],
+                                            " ",
                                         ],
                                         defaultOption:false,
                                         footer:[[
@@ -2669,7 +2675,7 @@
         caller = caller || "showprogress"
         var vm = this;
         var spatial_data = null;
-        
+
         if (targetFeature && targetFeature.spatial_data) {
             spatial_data = targetFeature.spatial_data;
         }
