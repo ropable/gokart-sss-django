@@ -1428,53 +1428,43 @@
                                     vm.taskDialog.close()
                                     process_invalid_func(result)
                                 }
-                            } else if (result["status"]["overlapped"]) {
+                            }
+                            else if (result["status"]["overlapped"]) {
                                 //found overlap
                                 if(!vm.dialog.isActive && !spatialData["area"]){
                                     vm.taskDialog.close()
                                     feature_area = result["data"]
                                     vm.dialog.show({
-                                    messages:[
-                                        "The sum of the burning areas in individual layers is " + Math.abs(feature_area["other_area"]).toFixed(2) + " greater than the total burning area " + feature_area["total_area"].toFixed(2) + ".",
-                                        "The features from the following layers are overlaped.",
-                                        [["",1],[getLayerId("cddp:legislated_lands_and_waters"),11]],
-                                        [["",1],[getLayerId("cddp:dept_interest_lands_and_waters"),11]],
-                                        [["",1],[getLayerId("cddp:other_tenures"),11]],
-                                        "Do you want to continue?"
-                                    ],
-                                    defaultOption:false,
-                                    footer:[[
-                                        ["",3],
-                                        [true,2,{
-                                            type:"button",
-                                            title:"Yes",
-                                            click:"close"
-                                        }],
-                                        ["",2],
-                                        [false,2,{
-                                            type:"button",
-                                            title:"No",
-                                            click:"close"
-                                        }],
-                                        ["",3]
-                                    ]],
-                                    callback:function(option){
-                                        setTimeout(function() {
-                                            if (option) {
-                                                if (!("fb_validation_req" in feature_area)) {
-                                                    feature_area["fb_validation_req"] = null
-                                                }
-                                                spatialData["area"] = feature_area
-                                                tenure_area_task.setStatus(utils.SUCCEED)
-                                            } else {
-                                                tenure_area_task.setStatus(utils.FAIL_CONFIRMED,"Cancelled")
-                                            }
-                                            vm.showProgress(vm.target_feature)
-                                        },1)
-                                    }
-                                })
-                            }
-                            } else {
+                                        "title":"Error",
+                                        messages:[
+                                            "The calculated burnt area contains duplicate areas. Please contact fire_systems_support@dbca.wa.gov.au for assistance.",
+                                            " ",
+                                        ],
+                                        defaultOption:false,
+                                        footer:[[
+                                            ["",2],
+                                            [true,6,{
+                                                type:"button",
+                                                title:"Return to Edit Mode",
+                                                click:function(button,data){
+                                                    removed = vm.clearQueue(true)
+                                                    console.log(removed)
+                                                    if(removed){
+                                                        vm.dialog.close();
+                                                    }
+                                                },
+                                            }],
+                                            [false,1,{
+                                                type:"button",
+                                                title:"Close",
+                                                click:"close",
+                                            }],
+                                            ["",3]
+                                        ]],
+                                    })
+                                }
+                            } 
+                            else {
                                 result["data"]["fb_validation_req"] = null
                                 spatialData["area"] = result["data"]
                                 tenure_area_task.setStatus(utils.SUCCEED)
@@ -2726,7 +2716,7 @@
                     var output = response['result'];
                     var status = response['status'];
                     var imp_feature = response['feature'];
-                    var spatial_data = response['spatial_data'];                 
+                    var spatial_data = response['spatial_data'];          
 
                     vm.target_feature = targetFeature;
                     var tasks = vm.featureTasks(targetFeature);
