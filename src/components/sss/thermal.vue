@@ -162,7 +162,7 @@
               <!--template v-for="f in featurelist" track-by="get('hotspot_no')"-->
 			  <template v-for="f in featurelist" >
 			    <div v-show="revision && (!viewportOnly || f.inViewport)" class="row feature-row" v-bind:class="{\'feature-selected\': isFeatureSelected(f) }" @click="toggleSelect(f)"> 
-			    <button class="collapsible" v-on:click="toggleImageList">{{f.get('flight_datetime')}} {{f.get('hotspot_no')}}</button>
+			    <button class="collapsible" v-on:click="toggleImageList($event,f)">{{f.get('flight_datetime')}} {{f.get('hotspot_no')}}</button>
 				
 			    <div class="showImages">
 				  <template v-for="imageFile in f.shortImages" >
@@ -221,7 +221,7 @@
 
 
 <script>
-  import { ol, moment, Msal, nodemailer, postmark, kjua, qs, axios, utils } from 'src/vendor.js'		//kjua is here for QR codes
+  import { ol, Vue,moment, Msal, nodemailer, postmark, kjua, qs, axios, utils } from 'src/vendor.js'		//kjua is here for QR codes
   export default {
     store: {
         hotspotLabels: true,	//boolean defining whether to show labels (can be later changed to use settings.
@@ -258,7 +258,8 @@
         revision: 1,
         selectRevision: 1,
 		extent: null,
-		isHotspotImageON: false, 
+		isHotspotImageON: false,
+		showHotspotImages: false,
       }
     },
 	
@@ -348,6 +349,9 @@
       featurelist: function() {
         try {
             //return this.revision && this._featurelist.getArray().sort(function(a, b){return a.get('hotspot_no') - b.get('hotspot_no')})
+			if(this.showHotspotImages){
+				return this.revision && this._featurelist.getArray()
+			}
 			return this.revision && this._featurelist.getArray().reverse()
         } catch (ex) {
             return [];
@@ -685,6 +689,7 @@
 	    if (this.invalidDateFilter) {
 			return
 		}
+		this.showHotspotImages = false
 	    var _this = this
 		var vm = this
 	
@@ -751,16 +756,17 @@
 				vm.features.clear()
 				vm.updateFeatureFilter(0)
 				vm.features.extend(features.sort(vm.featureOrder))
-				$.each(features, function (index, feature){
-					var imagesString = feature.get('images')
-					var imagesArray = imagesString.split(',')
-					feature.shortImages = imagesArray
-				})
+				// $.each(features, function (index, feature){
+				// 	var imagesString = feature.get('images')
+				// 	var imagesArray = imagesString.split(',')
+				// 	feature.shortImages = imagesArray
+				// })
 			})
 			}, timeout)
 		},
 
 	  clearHotspotLayers: function(){
+		this.showHotspotImages = false
 		this.removeImages()
 		this.removeHotspotLayers()
 		this.removeHotspotList()
@@ -933,8 +939,12 @@
         }
       },
 	  
-	  toggleImageList: function(event) {
+	  toggleImageList: function(event, feature) {
 			//event.target is the button wh was clicked; its nextElementSibling is the associated content (list of images for that hotspot)
+			var imagesString = feature.get('images')
+			var imagesArray = imagesString.split(',')
+			this.showHotspotImages = true
+			selected_feature = this.featurelist.find(function(f) {return f.id_ === feature.id_})
 			var hotspotID = event.target.innerHTML
 			var imageListContent = event.target.nextElementSibling
 			if (imageListContent.style.display === "block") {
