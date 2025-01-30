@@ -206,7 +206,7 @@
 
             <div class="small reveal" id="progressInfo" data-close-on-click="false">
             <h3>Status</h3>
-            <div v-if="target_feature.get('status') === 'in_queue'" class="alert-container">
+            <div v-if="target_feature.get('status') === 'in_queue' && target_feature.get('original_status') !== 'new'" class="alert-container">
             <p style="font-size: 13px; margin: 0;">
                 <i class="fa fa-info-circle"></i> This window can be closed – you will receive an email when the upload is ready to proceed
             </p>
@@ -496,7 +496,7 @@
                     //var feat = this;
                     var feat = res;
                     
-                    console.log(res);
+                    // console.log(res);
                     //console.log(new ol.Feature().getGeometry().getGeometriesArray())
                     if (typeof feat.getGeometry == "undefined") { 
                         return 
@@ -1454,7 +1454,6 @@
                                                 title:"Return to Edit Mode",
                                                 click:function(button,data){
                                                     removed = vm.clearQueue(true)
-                                                    console.log(removed)
                                                     if(removed){
                                                         vm.dialog.close();
                                                     }
