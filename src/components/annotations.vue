@@ -1104,7 +1104,7 @@
 
             if (ev.selected.length > 0) {
               vm.selectedFeatures.push(ev.selected[0]);
-              console.log(vm.selectedFeatures.getArray());
+              // console.log(vm.selectedFeatures.getArray());
               
               vm.$nextTick(function() {
                 if (options && options.listeners && typeof options.listeners.selected === 'function') {
@@ -1650,8 +1650,8 @@
 
 
                     if (!src) { 
-                      console.log("Unable to find blob file 1");
-                      console.log(src);
+                      // console.log("Unable to find blob file 1");
+                      // console.log(src);
                       return false
                    }
 
@@ -1679,7 +1679,7 @@
                     var src = vm.map.getBlob(f, ['icon', 'tint'],tints || {})
                     // src = "/static/sss/img/redpin.png";
                     if (!src) { 
-                      console.log("Unable to find blob file 2");
+                      // console.log("Unable to find blob file 2");
                       return false 
                     }
                     var rot = f.get('rotation') || 0.0
