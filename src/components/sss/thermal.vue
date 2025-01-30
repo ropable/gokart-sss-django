@@ -569,6 +569,7 @@
 		// Check if mosaic layer already loaded
 		var mosaicLoaded = false
 		var hotspotsLoaded = this.isFeatureSelected
+		var mosaicPosition = null
 		map.olmap.getLayers().forEach(function (layer) {
 			if (layer.get('name') === 'Flight mosaics') {
 					mosaicLoaded = true
@@ -591,7 +592,9 @@
 			// map.olmap.addLayer(mosaicLayersOLLayer)
 			// mosaicLayersOLLayer.refresh()
 			var dateInfo = this.getDateInfoForMosaics(vm)
-			var mosaicPositionOLLayer = map['createWMSLayer'](mosaicPosition, dateInfo)
+			if(mosaicPosition && dateInfo.length > 0){
+				var mosaicPositionOLLayer = map['createWMSLayer'](mosaicPosition, dateInfo)
+			}
 			// map.olmap.addLayer(mosaicPositionOLLayer)
 			// mosaicPositionOLLayer.refresh()
 			
@@ -945,6 +948,7 @@
 			var imagesArray = imagesString.split(',')
 			this.showHotspotImages = true
 			selected_feature = this.featurelist.find(function(f) {return f.id_ === feature.id_})
+			Vue.set(selected_feature, 'shortImages', imagesArray)
 			var hotspotID = event.target.innerHTML
 			var imageListContent = event.target.nextElementSibling
 			if (imageListContent.style.display === "block") {
