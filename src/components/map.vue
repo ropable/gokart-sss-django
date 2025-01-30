@@ -1489,6 +1489,9 @@
 					}
 				  })
 			  }
+        if(mosaicLayersString === ''){
+          return
+        }
 			  // Create map layer NB this.env.hotSpotService does not work inside $get so URL is created from the GetCapabilities run above
         const layerId = 'hotspots: flight_mosaics';
         const layerName = 'Flight mosaics';
