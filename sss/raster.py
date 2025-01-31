@@ -2303,6 +2303,7 @@ def outlookmetadata(request):
     Get weather outlook metadata
     """
     refresh = (request.GET.get("refresh", "false") or "false").lower() in ("true","yes","on")
+    loadAllDatasources()
     if refresh:
         for datasource in raster_datasources["bom"].values():
             syncDatasource(datasource)
