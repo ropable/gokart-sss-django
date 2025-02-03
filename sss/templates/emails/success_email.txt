@@ -3,7 +3,16 @@
 {% block content_body %}
 Hi{% if first_name %} {{ first_name }}{% endif %},
 
-Your spatial data calculation for {{ bfrs }} has now been completed.
+Your spatial data for {{ bfrs }} has now been uploaded. Please return to the SSS to complete the process, as detailed below.
+
+1. Press the ‘Check Progress’ button on the relevant fire record.
+(See the image in the HTML version)
+
+2. Click ‘Complete’, or alternatively ‘Return to Edit Mode’ if a change to the fire origin is required.
+(See the image in the HTML version)
+
+3. Enter the capture method details for the fire.
+
 Status of the tasks after processing:
 
 {% for task in tasks %}
