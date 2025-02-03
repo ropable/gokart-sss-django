@@ -74,7 +74,17 @@
           }),
           targetSize: 100,
           showLabels: true,
+          lonLabelFormatter: function (lon) {
+            var formattedLon = Math.abs(Math.round(lon * 1000) / 1000)
+            formattedLon += lon < 0 ? 'W' : lon > 0 ? 'E' : ''
+            return formattedLon
+          },
           lonLabelPosition: 0.02,
+          latLabelFormatter: function (lat) {
+            var formattedLat = Math.abs(Math.round(lat * 1000) / 1000)
+            formattedLat += lat < 0 ? 'S' : lat > 0 ? 'N' : ''
+            return formattedLat
+          },
           latLabelPosition: 0.98,
         }),
         dragPanInter: new ol.interaction.DragPan({
