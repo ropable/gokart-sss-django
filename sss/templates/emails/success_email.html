@@ -1,8 +1,17 @@
 {% extends 'emails/base_email.html' %}
-
+{% load static %}
 {% block content_body %}
 <p>Hi{% if first_name %} {{ first_name }}{% endif %}</p>
-<p>Your spatial data calculation for {{ bfrs }} has now been completed.</p>
+<p>Your spatial data for {{bfrs}} has now been uploaded. Please return to the SSS to complete the process, as detailed below.</p>
+
+<p>1. Press the ‘Check Progress’ button on the relevant fire record.</p>
+<p><img src="static/sss/img/img_1.png" style="max-width: 100%; height: auto;"></p>
+
+<p>2. Click ‘Complete’, or alternatively ‘Return to Edit Mode’ if a change to the fire origin is required.</p>
+<p><img src="static/sss/img/img_2.png" style="max-width: 100%; height: auto;"></p>
+
+<p>3. Enter the capture method details for the fire.<br></p>
+
 <p>Status of the tasks after processing</p>
 
 <table border="1" style="border-collapse: collapse; width: 100%;">
