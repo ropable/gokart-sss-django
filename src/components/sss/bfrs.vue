@@ -2011,6 +2011,7 @@
                 callback = function(feat,status,msg) {
                     if (status === utils.SUCCEED){
                         vm._taskManager.clearTasks(feat)
+                        console.log('reset 2')
                         vm.resetFeature(feat,false)
                     } else if (status === utils.WARNING || status === utils.FAILED)  {
                         var msg = vm._taskManager.errorMessages(feat).join("\r\n")
@@ -2022,6 +2023,9 @@
                 }
             }
             vm.getSpatialData(feat,caller,function(spatialData,job){
+                if (!spatialData || Object.keys(spatialData).length === 0){
+                    return
+                }
                 $.ajax({
                     url: vm.saveUrl(feat),
                     method:"PATCH",
@@ -2743,7 +2747,7 @@
                     if (status === "Calculating") {
                         vm.calculation_status = "calculating";
                     }
-                    if(caller !== 'updateBfrsUploadProgress'){
+                    if(caller !== 'updateBfrsUploadProgress' && targetFeature.get('status') === 'in_queue'){
                         openTaskDialog();
                     }
                     if (status === "Calculation Error") {
