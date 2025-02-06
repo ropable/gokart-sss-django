@@ -2022,6 +2022,9 @@
                 }
             }
             vm.getSpatialData(feat,caller,function(spatialData,job){
+                if (!spatialData || Object.keys(spatialData).length === 0){
+                    return
+                }
                 $.ajax({
                     url: vm.saveUrl(feat),
                     method:"PATCH",
@@ -2743,7 +2746,7 @@
                     if (status === "Calculating") {
                         vm.calculation_status = "calculating";
                     }
-                    if(caller !== 'updateBfrsUploadProgress'){
+                    if(caller !== 'updateBfrsUploadProgress' && targetFeature.get('status') === 'in_queue'){
                         openTaskDialog();
                     }
                     if (status === "Calculation Error") {
