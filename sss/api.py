@@ -172,7 +172,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     proxy_response_content = base64.b64decode(base64_json["content"].encode())
     http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])    
     http_response.headers['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
-    http_response.headers['Cache-Control'] = 'public, max-age=' + str(CACHE_EXPIRY)
+    http_response.headers['Cache-Control'] = 'public, max-age=' + str(CACHE_EXPIRY)+', must-revalidate'
     return http_response
 
 
