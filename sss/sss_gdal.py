@@ -15,8 +15,33 @@ from sss import common
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files import File
+import http
+import base64
+import hashlib
+from django.http import HttpResponse
 
 gdalinfo = subprocess.check_output(["gdalinfo", "--version"])
+
+def convert_file_to_base64(file_path):
+    with open(file_path, "rb") as file:
+        encoded_string = base64.b64encode(file.read()).decode('utf-8')
+    return encoded_string
+
+
+def send_file(base64_encoded_file, hash_key, fmt):
+    url = f"{settings.SSS_FILE_URL}/api/store_map_pdf/"
+    
+    # Data to send in the POST request
+    data = {
+        'base64_file': base64_encoded_file,
+        'hash': hash_key,
+        'extension': fmt
+    }
+    response = requests.post(url, data=data)
+    return response
+
+
+
 
 # PDF renderer, accepts a JPG
 def gdal_convert(request, fmt):
@@ -27,7 +52,7 @@ def gdal_convert(request, fmt):
         instance_format = settings.EMAIL_INSTANCE+'_'
 
     extent = request.POST.get("extent").split(" ")
-    bucket_key = request.POST.get("bucket_key")
+    hash_key = request.POST.get("hash_key")
     jpg = request.FILES.get("jpg")
     title = request.POST.get("title") or "Quick Print"
     sso_user = request.headers.get("X-email", "unknown")
@@ -97,22 +122,40 @@ def gdal_convert(request, fmt):
         subprocess.check_call(["pdftk",merged_filepath,"update_info_utf8",metadata_file,"output",updated_filepath])
         output_filepath = updated_filepath
 
-    meta = {
-        'SSOUser': sso_user
-    }
-
-    #upload to s3
-    if bucket_key:
-        #only upload to s3 if bucket_key is not empty
-        s3.upload_map(bucket_key, output_filepath, output_filename, ct, meta)
-    #output = open(output_filepath)
-    output = ""       
+    base64_encoded_file = convert_file_to_base64(output_filepath)
+    
+    # store the map pdf in sss-maps
+    response = send_file(base64_encoded_file, hash_key, fmt)
+    if response.status_code != 201:
+        try:
+            error_message = response.json().get('message', 'Error storing the file in server')
+        except ValueError:
+            error_message = response.text 
+        raise Exception(error_message)
     with open(output_filepath, 'rb') as f:
         output = f.read()
-    shutil.rmtree(workdir)
-    #bottle.response.set_header("Content-Type", ct)
-    #bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(output_filename))
-    return output
+    shutil.rmtree(os.path.dirname(output_filepath))
+
+    response = HttpResponse(output, content_type=ct)
+    response["Content-Disposition"] = "attachment; filename='{}'".format(output_filename)
+    return response
+    
+    # meta = {
+    #     'SSOUser': sso_user
+    # }
+
+    # #upload to s3
+    # if hash_key:
+    #     #only upload to s3 if bucket_key is not empty
+    #     s3.upload_map(hash_key, output_filepath, output_filename, ct, meta)
+    # #output = open(output_filepath)
+    # output = ""       
+    # with open(output_filepath, 'rb') as f:
+    #     output = f.read()
+    # shutil.rmtree(workdir)
+    # #bottle.response.set_header("Content-Type", ct)
+    # #bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(output_filename))
+    # return output
 
 def detectEpsg(filename):
 
