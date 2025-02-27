@@ -195,6 +195,8 @@ KB_AUTH2_BASIC_AUTH_USER=decouple.config("KB_AUTH2_BASIC_AUTH_USER", default="ad
 KB_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("KB_AUTH2_BASIC_AUTH_PASSWORD", default="nopassword")
 HOTSPOT_AUTH2_BASIC_AUTH_USER=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_USER", default=None)
 HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD=decouple.config("HOTSPOT_AUTH2_BASIC_AUTH_PASSWORD", default=None)
+AUTH2_SSS_MAP_USER=decouple.config("AUTH2_SSS_MAP_USER", default=None)
+AUTH2_SSS_MAP_PASSWORD=decouple.config("AUTH2_SSS_MAP_PASSWORD", default=None)
 WEATHERFORECAST_URL=decouple.config("WEATHERFORECAST_URL", default="https://incidentweatherforecast.service.bom.gov.au")
 WEATHERFORECAST_USER=decouple.config("WEATHERFORECAST_USER", default="")
 WEATHERFORECAST_PASSWORD=decouple.config("WEATHERFORECAST_PASSWORD", default="")

@@ -307,7 +307,7 @@
         this.title = this.title.trim()
         return (this.title.length == 0)?"Quick Print":this.title
       },
-      bucketKey: function() {
+      hashKey: function() {
         return hash.MD5({
             'extent':this.printStatus.layout.extent.join(' '),
             'author': this.legendInfo().author,
@@ -837,43 +837,67 @@
         }
       },
       // generate legend block, scale ruler is 40mm wide
-      renderLegend: function (bucketKey) {
-        var qrcanvas = bucketKey?kjua({text: this.env.s3Service + bucketKey, render: 'canvas', size: 100}):null
+      renderLegend: function (hashKey) {
+        var qrcanvas = hashKey?kjua({text: this.env.s3Service + "/download/" + hashKey +'.pdf', render: 'canvas', size: 100}):null
         return ['data:image/svg+xml;utf8,' + encodeURIComponent(this.$els.legendsvg.innerHTML), qrcanvas]
       },
       // POST a generated JPG to the gokart server backend to convert to GeoPDF
-      blobGDAL: function (blob, name, format,bucketKey) {
+      blobGDAL: function (blob, name, format, hashKey) {
         var vm = this
         var _func = function(legendData) {
-            var formData = new window.FormData()
-            formData.append('extent', vm.printStatus.layout.extent.join(' '))
-            formData.append('jpg', blob, name + '.jpg')
-            if (format === "pdf" && legendData)  {
-                formData.append('legends', legendData, name + '.legend.pdf')
+            try {
+                var formData = new window.FormData()
+                formData.append('extent', vm.printStatus.layout.extent.join(' '))
+                formData.append('jpg', blob, name + '.jpg')
+                if (format === "pdf" && legendData)  {
+                    formData.append('legends', legendData, name + '.legend.pdf')
+                }
+                formData.append('dpi', Math.round(vm.printStatus.layout.canvasPxPerMM * 25.4))
+                formData.append('title', vm.finalTitle)
+                formData.append('author', vm.legendInfo().author)
+                if (hashKey) {
+                    formData.append('hash_key', hashKey)
+                }
+                var req = new window.XMLHttpRequest()
+                req.open('POST', '/gdal/' + format)
+                req.withCredentials = true
+                req.responseType = 'blob'
+                req.onload = function (event) {
+                    if (req.status >= 200 && req.status < 300) {
+                        saveAs(req.response, name + '.' + format)
+                    } else {
+                        var reader = new FileReader()
+                        reader.onload = function () {
+                            try {
+                                var response = JSON.parse(reader.result)
+                                if (response.error) {
+                                    alert('Error: ' + response.error)
+                                } else {
+                                    alert('An error occurred. Please try again.')
+                                }
+                            } catch (e) {
+                                alert('An error occurred. Please try again.')
+                            }
+                        }
+                        reader.readAsText(req.response)
+                    }
+                }
+                req.onerror = function (event) {
+                    alert('Request failed. Please try again.')
+                }
+                req.send(formData)
+            } catch (error) {
+                alert('An error occurred: ' + error.message)
             }
-            formData.append('dpi', Math.round(vm.printStatus.layout.canvasPxPerMM * 25.4))
-            formData.append('title', vm.finalTitle)
-            formData.append('author', vm.legendInfo().author)
-            if (bucketKey) {
-                formData.append('bucket_key',bucketKey)
-            }
-            var req = new window.XMLHttpRequest()
-            req.open('POST', '/gdal/' + format)
-            req.withCredentials = true
-            req.responseType = 'blob'
-            req.onload = function (event) {
-              saveAs(req.response, name + '.' + format)
-            }
-            req.send(formData)
         }
         if (format === "pdf") {
-            vm.layerlegends.getLegendBlob(true,true,function(legendData){
+            vm.layerlegends.getLegendBlob(true, true, function(legendData) {
                 _func(legendData)
             })
         } else {
             _func()
         }
-      },
+    },
       // make a printable raster from the map
 
 
@@ -907,8 +931,8 @@ print: function (format) {
             var ctx = canvas.getContext('2d')
 
             var img = new window.Image()
-            var bucketKey = (format !== 'jpg')?vm.bucketKey:null
-            var legend = vm.renderLegend((format === 'pdf')?bucketKey:null)
+            var hashKey = (format !== 'jpg')?vm.hashKey:null
+            var legend = vm.renderLegend((format === 'pdf')?hashKey:null)
             var url = legend[0]
             var qrcanvas = legend[1]
             // wait until legend is rendered
@@ -962,7 +986,7 @@ print: function (format) {
                 if (format === 'jpg') {
                   saveAs(blob, filename + '.jpg')
                 } else {
-                  vm.blobGDAL(blob, filename, format,bucketKey)
+                  vm.blobGDAL(blob, filename, format,hashKey)
                 }
               }, 'image/jpeg', 0.9)
             }

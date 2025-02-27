@@ -458,12 +458,11 @@ def gdal(request,fmt):
         else:
             raise Exception("File format({}) Not Support".format(fmt))
         
-        data = sss_gdal.gdal_convert(request,fmt)
-        
-        #print (data)
-        response = HttpResponse(data, content_type=content_type)    
-        response["Content-Disposition"] = "attachment;filename='{}'".format(output_filename)
-        return response
+        try:
+            response = sss_gdal.gdal_convert(request, fmt)
+            return response
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
        
     else:
         return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
