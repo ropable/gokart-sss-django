@@ -28,18 +28,19 @@ def convert_file_to_base64(file_path):
     return encoded_string
 
 
-def send_file(base64_encoded_file, hash_key, fmt):
+import requests
+from requests.auth import HTTPBasicAuth
+
+def send_file(base64_encoded_file, hash_key, fmt, request):
     url = f"{settings.SSS_FILE_URL}/api/store_map_pdf/"
-    
-    # Data to send in the POST request
+    auth_request = HTTPBasicAuth(settings.AUTH2_SSS_MAP_USER, settings.AUTH2_SSS_MAP_PASSWORD)
     data = {
         'base64_file': base64_encoded_file,
         'hash': hash_key,
         'extension': fmt
     }
-    response = requests.post(url, data=data)
+    response = requests.post(url, data=data, auth=auth_request)
     return response
-
 
 
 
@@ -125,7 +126,7 @@ def gdal_convert(request, fmt):
     base64_encoded_file = convert_file_to_base64(output_filepath)
     
     # store the map pdf in sss-maps
-    response = send_file(base64_encoded_file, hash_key, fmt)
+    response = send_file(base64_encoded_file, hash_key, fmt, request)
     if response.status_code != 201:
         try:
             error_message = response.json().get('message', 'Error storing the file in server')
