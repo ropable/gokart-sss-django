@@ -1,5 +1,5 @@
 # Prepare the base environment.
-FROM ubuntu:24.04 as builder_base_govapp
+FROM ubuntu:24.04 AS builder_base_govapp
 MAINTAINER asi@dbca.wa.gov.au
 SHELL ["/bin/bash", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
@@ -74,7 +74,7 @@ RUN /tmp/default_script_installer.sh
 
 RUN chmod 755 /pre_startup.sh
 # Install Python libs from requirements.txt.
-FROM builder_base_govapp as python_libs_govapp
+FROM builder_base_govapp AS python_libs_govapp
 
 USER oim
 RUN virtualenv /app/venv
@@ -87,6 +87,7 @@ COPY --chown=oim:oim .git .git
 COPY --chown=oim:oim package.json ./
 # COPY --chown=oim:oim package-lock.json ./
 COPY --chown=oim:oim profile.py ./
+RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 RUN pip3 install npm
 #\ && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
