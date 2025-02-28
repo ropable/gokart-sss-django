@@ -19,6 +19,7 @@ import http
 import base64
 import hashlib
 from django.http import HttpResponse
+import time
 
 gdalinfo = subprocess.check_output(["gdalinfo", "--version"])
 
@@ -31,17 +32,45 @@ def convert_file_to_base64(file_path):
 import requests
 from requests.auth import HTTPBasicAuth
 
+def get_chunks(base_str, chunk_size):
+    count = 0
+    chunks = []
+    
+    for i in range(0, len(base_str), chunk_size):
+        count += 1
+        chunk = base_str[i:i + chunk_size]
+        chunks.append({
+            'part': count,
+            'data': chunk
+        })
+    
+    return chunks
+
 def send_file(base64_encoded_file, hash_key, fmt, request):
     url = f"{settings.SSS_FILE_URL}/api/store_map_pdf/"
     auth_request = HTTPBasicAuth(settings.AUTH2_SSS_MAP_USER, settings.AUTH2_SSS_MAP_PASSWORD)
-    data = {
-        'base64_file': base64_encoded_file,
-        'hash': hash_key,
-        'extension': fmt
-    }
-    response = requests.post(url, data=data, auth=auth_request)
+    
+    # Chunk the base64-encoded file
+    chunk_size = 500000
+    chunks = get_chunks(base64_encoded_file, chunk_size)
+    total_parts = len(chunks)
+    
+    # Send each chunk as a separate request
+    for chunk in chunks:
+        data = {
+            'base64_file': chunk['data'],
+            'hash': hash_key,
+            'extension': fmt,
+            'part_number': chunk['part'],
+            'total_parts': total_parts
+        }
+        response = requests.post(url, data=data, auth=auth_request)
+        
+        if response.status_code != 200:
+            print(f"Error: {response.status_code}")
+            break
+    
     return response
-
 
 
 # PDF renderer, accepts a JPG
