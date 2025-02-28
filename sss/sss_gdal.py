@@ -51,7 +51,7 @@ def send_file(base64_encoded_file, hash_key, fmt, request):
     auth_request = HTTPBasicAuth(settings.AUTH2_SSS_MAP_USER, settings.AUTH2_SSS_MAP_PASSWORD)
     
     # Chunk the base64-encoded file
-    chunk_size = 200000
+    chunk_size = 200000 #200KB each chunk size
     chunks = get_chunks(base64_encoded_file, chunk_size)
     total_parts = len(chunks)
     
