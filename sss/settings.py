@@ -233,7 +233,7 @@ EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
 DEFAULT_FROM_EMAIL = decouple.config("DEFAULT_FROM_EMAIL", default="")
 EMAIL_FROM = DEFAULT_FROM_EMAIL
 EMAIL_HOST = decouple.config("EMAIL_HOST", default="")
-SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="http://sss-maps.dbca.wa.gov.au/")
+SSS_FILE_URL = decouple.config("SSS_FILE_URL", default="https://sss-maps-uat.dbca.wa.gov.au")
 CALCULATE_AREA_IN_SEPARATE_PROCESS  = decouple.config("CALCULATE_AREA_IN_SEPARATE_PROCESS", default=False, cast=bool)
 DATA_UPLOAD_MAX_MEMORY_SIZE = decouple.config("DATA_UPLOAD_MAX_MEMORY_SIZE", default=51200000)
 EXPORT_CALCULATE_AREA_FILES_4_DEBUG = decouple.config("EXPORT_CALCULATE_AREA_FILES_4_DEBUG", default="true")
