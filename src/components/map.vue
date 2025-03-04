@@ -72,20 +72,21 @@
             width: 0.5, 
             lineDash: null // Solid line style
           }),
-          targetSize: 100,
+          intervals: [5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.01, 0.005, 0.002, 0.001],
           showLabels: true,
-          lonLabelFormatter: function (lon) {
-            var formattedLon = Math.abs(Math.round(lon * 1000) / 1000)
-            formattedLon += lon < 0 ? 'W' : lon > 0 ? 'E' : ''
-            return formattedLon
-          },
           lonLabelPosition: 0.02,
+          latLabelPosition: 0.98,
           latLabelFormatter: function (lat) {
             var formattedLat = Math.abs(Math.round(lat * 1000) / 1000)
             formattedLat += lat < 0 ? 'S' : lat > 0 ? 'N' : ''
             return formattedLat
           },
-          latLabelPosition: 0.98,
+          lonLabelFormatter: function (lon) {
+            var formattedLon = Math.abs(Math.round(lon * 1000) / 1000)
+            formattedLon += lon < 0 ? 'W' : lon > 0 ? 'E' : ''
+            return formattedLon
+          },
+
         }),
         dragPanInter: new ol.interaction.DragPan({
           condition: function (mapBrowserEvent) {
