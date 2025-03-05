@@ -258,6 +258,7 @@
       return {
         spatialInfo:{},
         minDPI: 150,
+        chunkSize: 200,
         paperSizes: {
           A0: [1189, 841],
           A1: [841, 594],
@@ -843,52 +844,74 @@
       },
       // POST a generated JPG to the gokart server backend to convert to GeoPDF
       blobGDAL: function (blob, name, format, hashKey) {
-        var vm = this
-        var _func = function(legendData) {
-            try {
-                var formData = new window.FormData()
-                formData.append('extent', vm.printStatus.layout.extent.join(' '))
-                formData.append('jpg', blob, name + '.jpg')
-                if (format === "pdf" && legendData)  {
-                    formData.append('legends', legendData, name + '.legend.pdf')
-                }
-                formData.append('dpi', Math.round(vm.printStatus.layout.canvasPxPerMM * 25.4))
-                formData.append('title', vm.finalTitle)
-                formData.append('author', vm.legendInfo().author)
-                if (hashKey) {
-                    formData.append('hash_key', hashKey)
-                }
-                var req = new window.XMLHttpRequest()
-                req.open('POST', '/gdal/' + format)
-                req.withCredentials = true
-                req.responseType = 'blob'
-                req.onload = function (event) {
-                    if (req.status >= 200 && req.status < 300) {
-                        saveAs(req.response, name + '.' + format)
-                    } else {
-                        var reader = new FileReader()
-                        reader.onload = function () {
-                            try {
-                                var response = JSON.parse(reader.result)
-                                if (response.error) {
-                                    alert('Error: ' + response.error)
-                                } else {
-                                    alert('An error occurred. Please try again.')
-                                }
-                            } catch (e) {
-                                alert('An error occurred. Please try again.')
-                            }
-                        }
-                        reader.readAsText(req.response)
-                    }
-                }
-                req.onerror = function (event) {
-                    alert('Request failed. Please try again.')
-                }
-                req.send(formData)
-            } catch (error) {
-                alert('An error occurred: ' + error.message)
-            }
+      var vm = this;
+      var _func = function(legendData) {
+          try {
+              // Function to split the Blob into chunks and send each chunk
+              var sendChunk = function(start) {
+                  var end = Math.min(start + vm.chunkSize * 1024, blob.size); // 200KB
+                  var chunk = blob.slice(start, end);
+
+                  var formData = new window.FormData();
+                  formData.append('extent', vm.printStatus.layout.extent.join(' '));
+                  formData.append('chunk', chunk, name + '.chunk');
+                  formData.append('start', start);
+                  formData.append('end', end);
+                  formData.append('totalSize', blob.size);
+
+                  if (format === "pdf" && legendData) {
+                      formData.append('legends', legendData, name + '.legend.pdf');
+                  }
+                  formData.append('dpi', Math.round(vm.printStatus.layout.canvasPxPerMM * 25.4));
+                  formData.append('title', vm.finalTitle);
+                  formData.append('author', vm.legendInfo().author);
+                  if (hashKey) {
+                      formData.append('hash_key', hashKey);
+                  }
+
+                  var req = new window.XMLHttpRequest();
+                  req.open('POST', '/gdal/' + format);
+                  req.withCredentials = true;
+                  req.responseType = 'blob';
+
+                  req.onload = function(event) {
+                      if (req.status >= 200 && req.status < 300) {
+                          if (end < blob.size) {
+                              // Send the next chunk
+                              sendChunk(end);
+                          } else {
+                              saveAs(req.response, name + '.' + format);
+                          }
+                      } else {
+                          var reader = new FileReader();
+                          reader.onload = function() {
+                              try {
+                                  var response = JSON.parse(reader.result);
+                                  if (response.error) {
+                                      alert('Error: ' + response.error);
+                                  } else {
+                                      alert('An error occurred. Please try again.');
+                                  } 
+                              } catch (e) {
+                                  alert('An error occurred. Please try again.');
+                              }
+                          };
+                          reader.readAsText(req.response);
+                      }
+                  };
+
+                  req.onerror = function(event) {
+                      alert('Request failed. Please try again.');
+                  };
+
+                  req.send(formData);
+              };
+
+              // Start sending chunks
+              sendChunk(0);
+          } catch (error) {
+              alert('An error occurred: ' + error.message);
+          }
         }
         if (format === "pdf") {
             vm.layerlegends.getLegendBlob(true, true, function(legendData) {
@@ -901,7 +924,7 @@
       // make a printable raster from the map
 
 
-print: function (format) {
+      print: function (format) {
         // rig the viewport to have printing dimensions
         this.prepareMapForPrinting()
         var timer
