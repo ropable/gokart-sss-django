@@ -2004,7 +2004,7 @@
                     var task = vm._taskManager.addTask(feat, "save", "save", "Save spatial data", utils.RUNNING);
                 }
             }
-            if (!vm.taskDialog || !vm.taskDialog.isActive) {
+            if ((!vm.taskDialog || !vm.taskDialog.isActive) && caller !== 'showprogress') {
                 vm.showProgress(feat);
             }
             if (!callback) {
@@ -2663,8 +2663,9 @@
     },
 
         updateBfrsUploadProgress(){
+            vm = this
             if(vm.target_feature){
-                if (vm.taskDialog && vm.taskDialog.isActive) { 
+                if (vm.taskDialog && vm.taskDialog.isActive && vm.target_feature.get('status') === 'in_queue') { 
                     vm.showProgress(vm.target_feature,'updateBfrsUploadProgress')
                 }
             }

@@ -713,10 +713,10 @@ def load_bfrs_status(request, *args, **kwargs):
         bfrs_in_queue = SpatialDataCalculation.objects.filter(
             Q(id__in=latest_ids) &
             (Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[0][0]) | 
-             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
-             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
-             Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]))
-        )
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[1][0]) |
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[2][0]) |
+            Q(calculation_status=SpatialDataCalculation.CALCULATION_STATUS[3][0]))
+        ).exclude(bfrs__icontains="new bushfire")
 
         bfrs_list = [{'bfrs': obj.bfrs, 'feature': obj.features, 'tasks': obj.tasks, 'spatial_data': obj.spatial_data} for obj in bfrs_in_queue]
         return JsonResponse({'bfrs_list': bfrs_list})
