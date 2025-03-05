@@ -441,31 +441,65 @@ def spatial(request):
     else:
         return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
 
-@csrf_exempt
-def gdal(request,fmt):
+from django.core.files.uploadedfile import SimpleUploadedFile
 
+@csrf_exempt
+def gdal(request, fmt):
     if request.user.is_authenticated:
-        print ("GENERATING: "+fmt)    
+        print("GENERATING: " + fmt)
         if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
-            instance_format = settings.EMAIL_INSTANCE+'_'    
+            instance_format = settings.EMAIL_INSTANCE + '_'
+        
         jpg = request.FILES.get("jpg")
-        output_filename = instance_format+jpg.name.replace("jpg", fmt)
+        chunk = request.FILES.get("chunk")
         
-        if fmt == "tif":
-            content_type="image/tiff"
-        elif fmt == "pdf":
-            content_type = "application/pdf"                    
-        else:
-            raise Exception("File format({}) Not Support".format(fmt))
-        
-        try:
-            response = sss_gdal.gdal_convert(request, fmt)
-            return response
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-       
+        if jpg:
+            output_filename = instance_format + jpg.name.replace("jpg", fmt)
+            
+            if fmt == "tif":
+                content_type = "image/tiff"
+            elif fmt == "pdf":
+                content_type = "application/pdf"                    
+            else:
+                raise Exception("File format({}) Not Support".format(fmt))
+            
+            try:
+                response = sss_gdal.gdal_convert(request, fmt)
+                return response
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+
+        elif chunk:
+            start = int(request.POST.get("start"))
+            end = int(request.POST.get("end"))
+            total_size = int(request.POST.get("totalSize"))
+
+            # Use a temporary file to store chunks
+            temp_filename = instance_format + "upload_temp_file.jpg"
+            with open(temp_filename, 'ab') as temp_file:
+                temp_file.seek(start)
+                temp_file.write(chunk.read())
+
+            if end >= total_size:
+                with open(temp_filename, 'rb') as final_file:
+                    merged_jpg = SimpleUploadedFile(name=instance_format + "merged.jpg", content=final_file.read(), content_type='image/jpeg')
+                    print('file size')
+                    print(os.path.getsize(temp_filename))
+                    os.remove(temp_filename)
+                    request.FILES['jpg'] = merged_jpg
+                    
+                    try:
+                        response = sss_gdal.gdal_convert(request, fmt)
+                        return response
+                    except Exception as e:
+                        return JsonResponse({'error': str(e)}, status=500)
+
+            return JsonResponse({"status": "chunk received"})
+
     else:
         return HttpResponse('User is not authenticated', content_type='text/plain', status=500)
+
+
 
 @csrf_exempt
 def gdal_ogrinfo(request):
