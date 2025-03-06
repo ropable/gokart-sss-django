@@ -203,8 +203,9 @@
                       <div class="feature-title"><span class="reportname">{{f.get('name')}}</span></div>
                       <div v-if="f.get('status') === 'merged'" style="float:right"><img src="/static/dist/static/images/merge.svg"> {{f.get('linked_bushfire_number')}}</div>
                 </div>
-
-            <div class="small reveal" id="progressInfo" data-close-on-click="false">
+              </div>
+              </template>
+              <div class="small reveal" id="progressInfo" data-reveal data-close-on-click="false" >
             <h3>Status</h3>
             <div v-if="target_feature.get('status') === 'in_queue' && target_feature.get('original_status') !== 'new'" class="alert-container">
             <p style="font-size: 13px; margin: 0;">
@@ -243,8 +244,6 @@
                 <a title="Complete" class="button" style="flex: 0 0 auto; width: auto; margin: 0 4.165%; margin-top:10px" @click="captureMethods()" :disabled="completeButtonDisabled">Complete</a>
             </div>
             </div>
-              </div>
-              </template>
             </div>
           </div>
 
@@ -2683,16 +2682,6 @@
             spatial_data = targetFeature.spatial_data;
         }
 
-        function openTaskDialog() {
-            if (!vm.taskDialog || !vm.taskDialog.isActive || !vm.dialog.isActive) {
-                if (vm.taskDialog) {
-                    vm.taskDialog.destroy();
-                }
-                vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
-                vm.taskDialog.open();
-            }
-        }
-
         var tasks = vm.featureTasks(targetFeature);
         var tenure_area_task = tasks.find(task => task.taskId === 'tenure_area');
         if (targetFeature.get('status') === 'new' || targetFeature.get('original_status') === 'new') {
@@ -2706,7 +2695,9 @@
             vm.submitter = '';
             vm.calculation_status = '';
             vm.completeButtonDisabled = true;
-            openTaskDialog();
+            if(!vm.taskDialog.isActive){
+                vm.taskDialog.open();
+            }
         } else {
             vm.clearButtonDisabled = false;
             $.ajax({
@@ -2748,7 +2739,9 @@
                         vm.calculation_status = "calculating";
                     }
                     if(caller !== 'updateBfrsUploadProgress' && targetFeature.get('status') === 'in_queue'){
-                        openTaskDialog();
+                        if(!vm.taskDialog.isActive){
+                            vm.taskDialog.open();
+                        }
                     }
                     if (status === "Calculation Error") {
                         vm.calculation_status = 'calculation_error';
@@ -4007,6 +4000,7 @@
       this._taskManager = utils.getFeatureTaskManager(function() {
         vm.revision++
       })
+      vm.taskDialog = new Foundation.Reveal($('#progressInfo'));
       
       //init datepicker
       $('#bfrsStartDate').fdatepicker({
