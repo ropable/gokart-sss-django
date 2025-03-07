@@ -9,7 +9,7 @@ var env = {
     //kmiService:"https://kmi.dbca.wa.gov.au/geoserver",
     kmiService:"{{ mapserver.kmi }}",
     kmiApiService: "{{ settings.KMI_API_URL }}",
-    legendSrc:"https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontSize:14;bgColor:0xFFFFEE;dpi:120;labelMargin:10&LAYER=",
+    legendSrc:"{{ mapserver.kmi }}/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontSize:14;bgColor:0xFFFFEE;dpi:120;labelMargin:10&LAYER=",
 
 	hotspotService:"{{ settings.HOTSPOT_SERVICE_URL }}",
 

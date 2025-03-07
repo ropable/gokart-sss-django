@@ -66,7 +66,7 @@ def send_file(base64_encoded_file, hash_key, fmt, request):
         }
         response = requests.post(url, data=data, auth=auth_request)
         
-        if response.status_code != 200:
+        if response.status_code not in [200,201]:
             print(f"Error: {response.status_code}")
             break
     
