@@ -807,7 +807,6 @@
         var updateType = null
         var action = options["action"] || "select"
         if (!options) {return}
-        // xoxo
         if ("region" in options) {
             if (this.region !== "" && options["region"] !== this.region) {
                 this.region = options["region"] || ""
