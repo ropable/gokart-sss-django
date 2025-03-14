@@ -207,7 +207,12 @@
               </template>
               <div class="small reveal" id="progressInfo" data-reveal data-close-on-click="false" >
             <h3>Status</h3>
-            <div v-if="target_feature.get('status') === 'in_queue' && target_feature.get('original_status') !== 'new'" class="alert-container">
+            <div v-if="target_feature.get('status') === 'in_queue' && calculation_status === 'calculation_completed'" class="alert-container green-alert">
+            <p style="font-size: 13px; margin: 0;">
+                <i class="fa fa-info-circle"></i> Upload has been processed, please click ‘Complete’ Below to finalise the process
+            </p>
+            </div>
+            <div v-if="target_feature.get('status') === 'in_queue' && target_feature.get('original_status') !== 'new' && calculation_status !== 'calculation_completed'" class="alert-container blue-alert">
             <p style="font-size: 13px; margin: 0;">
                 <i class="fa fa-info-circle"></i> This window can be closed – you will receive an email when the upload is ready to proceed
             </p>
@@ -302,26 +307,36 @@
     padding-right:4px;
 }
 .alert-container {
-  padding: 10px; /* Adjust padding to reduce space */
-  margin-bottom: 20px;
-  border: 1px solid #004085;
-  border-radius: 6px;
-  margin-top: -10px;
-  position: relative;
-  background-color: #cce5ff;
-  border-color: #b8daff;
-  color: #004085;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #004085;
+    border-radius: 6px;
+    margin-top: -10px;
+    position: relative;
+    color: #004085;
+}
+
+.blue-alert {
+    background-color: #cce5ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+
+.green-alert {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
 }
 .badge {
     display: inline-block;
-    padding: 0.25em 0.4em;
-    font-size: 75%;
+    padding: 0.4em 0.8em;
+    font-size: 85%;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1;
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
-    border-radius: 0.25rem;
+    border-radius: 0.5rem;
 }
 .bg-primary {
     background-color: #2199E8;
