@@ -307,7 +307,7 @@
     padding-right:4px;
 }
 .alert-container {
-    padding: 10px; /* Adjust padding to reduce space */
+    padding: 10px;
     margin-bottom: 20px;
     border: 1px solid #004085;
     border-radius: 6px;
