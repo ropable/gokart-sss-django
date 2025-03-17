@@ -2810,9 +2810,9 @@
 
                     vm.feature_tasks = vm.featureTasks(vm.target_feature);
                     if(tenure_area_task.status === 2){ //if the task is still running 
-                        setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
                         setTimeout(vm.updateBfrsUploadProgress, 5000);
                     }
+                    setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
 
                 },
                 error: function(xhr, status, message) {
