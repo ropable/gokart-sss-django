@@ -2713,7 +2713,7 @@
             if(!vm.taskDialog.isActive){
                 vm.taskDialog.open();
             }
-        } else if(targetFeature.get('status') === 'in_queue' && tenure_area_task.status === 2) { //only send the request if the calculation is still pending
+        } else if(targetFeature.get('status') === 'in_queue' && (tenure_area_task.status === 2 || caller === 'showprogress')) { //only send the request if the calculation is still pending
             vm.clearButtonDisabled = false;
             $.ajax({
                 url: "/api/spatial_calculation_progress.json",
@@ -2809,8 +2809,11 @@
                     }
 
                     vm.feature_tasks = vm.featureTasks(vm.target_feature);
+                    if(tenure_area_task.status === 2){ //if the task is still running 
                         setTimeout(() => vm.updateTasks(vm.target_feature), 5000);
                         setTimeout(vm.updateBfrsUploadProgress, 5000);
+                    }
+
                 },
                 error: function(xhr, status, message) {
                     alert(xhr.status + " : " + (xhr.responseText || message));
