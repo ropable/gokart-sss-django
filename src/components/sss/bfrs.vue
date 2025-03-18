@@ -2713,7 +2713,7 @@
             if(!vm.taskDialog.isActive){
                 vm.taskDialog.open();
             }
-        } else if(targetFeature.get('status') === 'in_queue' && (tenure_area_task.status === 2 || caller === 'showprogress')) { //only send the request if the calculation is still pending
+        } else if(targetFeature.get('status') === 'in_queue') { 
             vm.clearButtonDisabled = false;
             $.ajax({
                 url: "/api/spatial_calculation_progress.json",

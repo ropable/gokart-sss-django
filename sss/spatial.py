@@ -101,30 +101,42 @@ def getShapelyGeometry(feature):
         return shape(feature["geometry"])
 
 
-def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
+# new transform which uses EPSG:3577 for more accurate area calculation
+def transform(geometry,src_proj="EPSG:4326",target_proj='EPSG:3577'):
     if src_proj == target_proj:
         return geometry
     else:
-        if src_proj == 'aea':
-            src_proj = proj_aea(geometry)
-        else:
-            src_proj = pyproj.Proj(init=src_proj)
+        transformer = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:3577", always_xy=True)
+        projected_geometry = ops.transform(transformer.transform, geometry)
+        return projected_geometry
 
-        if target_proj == 'aea':
-            target_proj = proj_aea(geometry)
-        else:
-            target_proj = pyproj.Proj(init=target_proj)
 
-        return ops.transform(
-            partial(
-                pyproj.transform,
-                src_proj,
-                #pyproj.Proj(proj="aea",lat1=geometry.bounds[1],lat2=geometry.bounds[3])
-                #use projection 'Albers Equal Conic Area for WA' to calcuate the area
-                target_proj
-            ),
-            geometry
-        )
+
+# transform projection to 'aea'. This is not very accurate so above transform function is used
+# def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
+#     if src_proj == target_proj:
+#         return geometry
+#     else:
+#         if src_proj == 'aea':
+#             src_proj = proj_aea(geometry)
+#         else:
+#             src_proj = pyproj.Proj(init=src_proj)
+
+#         if target_proj == 'aea':
+#             target_proj = proj_aea(geometry)
+#         else:
+#             target_proj = pyproj.Proj(init=target_proj)
+
+#         return ops.transform(
+#             partial(
+#                 pyproj.transform,
+#                 src_proj,
+#                 #pyproj.Proj(proj="aea",lat1=geometry.bounds[1],lat2=geometry.bounds[3])
+#                 #use projection 'Albers Equal Conic Area for WA' to calcuate the area
+#                 target_proj
+#             ),
+#             geometry
+#         )
 def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
     """
     Get polygon's area using albers equal conic area
@@ -446,7 +458,7 @@ def calculateGeometryArea(geometry,src_proj="EPSG:4326",unit='ha'):
     if not valid:
         print("geometry is invalid.{}", msg)
 
-    geometry_aea = transform(geometry,src_proj=src_proj,target_proj='aea')
+    geometry_aea = transform(geometry,src_proj=src_proj,target_proj='EPSG:3577')
 
     return  getGeometryArea(geometry_aea,unit,'aea')
 
@@ -474,8 +486,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-
-    geometry_aea = transform(geometry,target_proj='aea')
+    geometry_aea = transform(geometry,target_proj='EPSG:3577')
     kmi_server = kmi.get_kmiserver()
     try:
         area_data["total_area"] = getGeometryArea(geometry_aea,unit,'aea')
@@ -532,7 +543,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                 if not layer_geometry.is_valid:
                    layer_geometry = layer_geometry.buffer(0)      #Times out if reserves is a single massive poly
                   #  return {"status":"failed","data":"invalid polygon in tenure layer, probably the other_tenures layer"}
-                layer_geometry = transform(layer_geometry,target_proj='aea')
+                layer_geometry = transform(layer_geometry,target_proj='EPSG:3577')
                 if not isinstance(layer_geometry,Polygon) and not isinstance(layer_geometry,MultiPolygon):
                     continue
                 intersections = extractPolygons(geometry_aea.intersection(layer_geometry))
