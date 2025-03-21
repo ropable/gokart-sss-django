@@ -1151,6 +1151,13 @@
             if(vm.target_feature.spatial_data){
                 spatialData = vm.target_feature.spatial_data
             }
+            if(vm.target_feature && vm.target_feature.get("fire_number")){
+                if(feat.get("fire_number")){
+                    if(vm.target_feature.get("fire_number") === feat.get("fire_number")){
+                        feat.tasks = vm.target_feature.tasks
+                    }
+                }
+            }
             if (vm._taskManager.allTasksSucceed(feat,"getSpatialData")) {
                 if ("region" in spatialData && "district" in spatialData) {
                     var region = null
