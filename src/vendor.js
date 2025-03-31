@@ -2,7 +2,7 @@
 
 // produce some terrifying CSS at runtime using browserify-css
 import 'tether-shepherd/dist/css/shepherd-theme-dark.css'
-import 'foundation-sites/dist/foundation-flex.css'
+import './apps/foundation-flex.css';
 import 'foundation-datepicker/css/foundation-datepicker.css'
 // import './apps/ol-debug.css'
 import 'dragula/dist/dragula.css'
@@ -51,7 +51,7 @@ import Tether from 'tether'
 // Guided tour lib
 import Shepherd from 'tether-shepherd'
 //pdf generator
-import jsPDF from 'jspdf'
+import jsPDF from 'jspdf/dist/jspdf.umd'
 import interact from 'interact.js'
 import hash from "object-hash"
 import utils from './utils.js'
