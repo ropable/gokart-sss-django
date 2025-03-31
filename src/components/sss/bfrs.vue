@@ -2773,7 +2773,6 @@
                             tenure_area_task.setStatus(utils.FAILED);
                         }
 
-                        targetFeature.imported_feature.tasks = tasks;
                         tasks.forEach(task => {
                             if (task.taskId !== 'tenure_area' && task.status !== 3) {
                                 task.setStatus(utils.FAILED);
