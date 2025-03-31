@@ -50,14 +50,11 @@
   },
   "browser": {
     "jquery": "./node_modules/jquery/dist/jquery.js",
-    "foundation-sites": "./node_modules/foundation-sites/dist/foundation.js"
+    "foundation-sites": "./node_modules/foundation-sites/dist/js/foundation.js"
   },
   "browserify-shim": {
-    "jquery": "$",
-    "foundation-sites": {
-      "depends": [
-        "jquery"
-      ]
+    "jquery": {
+      "exports": "$"
     }
   },
   "dependencies": {
@@ -71,7 +68,7 @@
     "foundation-sites": "^6.9.0",
     "interact.js": "~1.2.6",
     "jcanvas": "~16.7.3",
-    "jspdf": "^3.0.1",
+    "jspdf": "~3.0.1",
     "jstree": "~3.3.4",
     "kjua": "~0.1.1",
     "localforage": "~1.4.2",
