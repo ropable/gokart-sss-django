@@ -278,8 +278,7 @@
                 }
                 var doc = new jsPDF();
                 doc.setFontSize(style.fontSize)
-                doc.setFont(style.font)
-                doc.setFontType(style.fontType)
+                doc.setFont(style.font,style.fontType)
                 doc.setTextColor(style.textColor[0],style.textColor[1],style.textColor[2])
                 doc.setLineWidth(style.lineWidth)
                 doc.setDrawColor(style.lineColor[0],style.lineColor[1],style.lineColor[2])
