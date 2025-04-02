@@ -1998,10 +1998,10 @@
         caller = caller || "save"
         if (this.canSave(feat) || caller === 'capturemethod') {
             var vm = this
-            vm.target_feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
-            if(vm.target_feature){
-                var tasks = vm.featureTasks(vm.target_feature); 
+            if(!vm.target_feature){
+                vm.target_feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
             }
+            var tasks = vm.featureTasks(vm.target_feature); 
             
             //resetting tasks, if failed
             if (caller != 'showprogress' && caller != 'capturemethod' && tasks && tasks.length > 0) {
