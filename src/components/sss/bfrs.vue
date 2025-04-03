@@ -1746,7 +1746,6 @@
                         url: "/api/bfrs_calculation_queue",
                         dataType:"json",
                         data:{
-                                feature: JSON.stringify(feat),
                                 bfrs:feat.get('fire_number'),
                                 tasks:JSON.stringify(vm.featureTasks(vm.target_feature)),
                                 features:vm.$root.geojson.writeFeatures([feat]),
@@ -1998,10 +1997,10 @@
         caller = caller || "save"
         if (this.canSave(feat) || caller === 'capturemethod') {
             var vm = this
-            if(!vm.target_feature){
+            if(!vm.target_feature || !feat.tasks){
                 vm.target_feature = vm.featurelist.find(f => f.get('fire_number') === feat.get('fire_number'));
             }
-            var tasks = vm.featureTasks(vm.target_feature); 
+            var tasks = vm.featureTasks(vm.target_feature);
             
             //resetting tasks, if failed
             if (caller != 'showprogress' && caller != 'capturemethod' && tasks && tasks.length > 0) {
@@ -2026,6 +2025,7 @@
                 }
             }
             if ((!vm.taskDialog || !vm.taskDialog.isActive) && caller !== 'showprogress') {
+                console.log("inside show progress function")
                 vm.showProgress(feat);
             }
             if (!callback) {
@@ -3349,6 +3349,9 @@
                                 if (uploadedFireboundary && (!vm.isFireboundaryDrawable(feat) || !vm.map.isGeometryEqual(uploadedFireboundary,featureFireboundary,0.000000005))) {
                                     modifyType = modifyType | 2
                                 }
+                                if(feature.get('crs')){
+                                    feat.set('crs', feature.get('crs'))
+                                }
                                 if (!vm.isFireboundaryDrawable(feat) && (modifyType & 2) === 2) {
                                     //save to the database directly
                                     feature.set('id',feat.get('id'),true)
@@ -3499,7 +3502,7 @@
             if (vm.dialog){
                 setTimeout(function(){vm.dialog.close()},100);
             }
-        })
+        }, true)
       },
       
 	  resetFilters: function() {

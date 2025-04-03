@@ -201,6 +201,21 @@ def detectEpsg(filename):
 
     return result
 
+def validateCRS(filename):
+    gdal_cmd = ['gdalsrsinfo', '-o', 'wkt2', filename]
+    gdal = subprocess.Popen(gdal_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    gdal_output = gdal.communicate()
+    proj4_string = gdal_output[0].decode().split('\n')
+
+    for line in proj4_string:
+        if line.startswith("PROJCRS"):
+            for crs_name in SUPPORTED_CRS:
+                if crs_name.lower() in line.lower():
+                    return crs_name
+            return False
+    return True
+
+
 
 #initialize vrt template
 with open(os.path.join(settings.BASE_PATH,"sss","unionlayers.vrt")) as f:
@@ -208,6 +223,7 @@ with open(os.path.join(settings.BASE_PATH,"sss","unionlayers.vrt")) as f:
 
 # Vector translation using ogr
 SUPPORTED_GEOMETRY_TYPES = ["POINT","LINESTRING","POLYGON","MULTIPOINT","MULTILINESTRING","MULTIPOLYGON"] 
+SUPPORTED_CRS = ["Albers_Equal_Conic_Area_GDA_Western_Australia", "GDA94 / Australian Albers"]
 
 #initialize supported spatial format
 SPATIAL_FORMAT_LIST = [
@@ -639,6 +655,7 @@ def ogrinfo(request):
     try:
         #datasource.save(workdir)
         datasourcefile = os.path.join(workdir, datasource.name)
+        crs_validation = request.POST.get("crs_validation", False)
         print (datasourcefile)
         fout = open(datasourcefile, 'wb+')
         file_content = ContentFile( datasource.read() )
@@ -655,6 +672,15 @@ def ogrinfo(request):
         for filePath,relativeFilePath in getDatasourceFiles(workdir,datasourcefile):
             layers = getLayers(filePath)
 
+            if crs_validation:
+                crs = validateCRS(filePath)
+                if crs == False:
+                    raise Exception(f"Source CRS is not supported. Supported CRS: {SUPPORTED_CRS}")
+                elif crs == True:
+                    pass
+                else:
+                    for layer in layers: layer['crs'] = crs
+            
             layers = [l for l in layers if l["geometry"] in SUPPORTED_GEOMETRY_TYPES or l["geometry"].upper().find("UNKNOWN") >= 0]
 
             if layers:

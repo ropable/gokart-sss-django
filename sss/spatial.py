@@ -17,7 +17,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely import ops
 from functools import partial
 from sss.models import SpatialDataCalculation
-
+from sss.sss_gdal import SUPPORTED_CRS
 from django.conf import settings
 from sss import kmi
 
@@ -101,21 +101,17 @@ def getShapelyGeometry(feature):
         return shape(feature["geometry"])
 
 
-# this transform function can be used to transofrm EPSG:3577
-# def transform(geometry,src_proj="EPSG:4326",target_proj='EPSG:3577'):
-#     if src_proj == target_proj:
-#         return geometry
-#     else:
-#         transformer = pyproj.Transformer.from_crs(src_proj, target_proj, always_xy=True)
-#         projected_geometry = ops.transform(transformer.transform, geometry)
-#         return projected_geometry
 
 
 
-# this tranform function is used for more accurate area calculation
+# this tranform function is used for more accurate area calculation, currently supports {aea,EPSG:3577}
 def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
     if src_proj == target_proj:
         return geometry
+    elif target_proj == 'EPSG:3577':
+        transformer = pyproj.Transformer.from_crs(src_proj, target_proj, always_xy=True)
+        projected_geometry = ops.transform(transformer.transform, geometry)
+        return projected_geometry
     else:
         if src_proj == 'aea':
             src_proj = proj_aea(geometry)
@@ -488,8 +484,25 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    geometry_aea = transform(geometry,target_proj='aea')
+    target_proj = None
+    # if crs exist in feature property, target projection need to be used according to that
+    if 'properties' in feature and feature['properties']:
+        if 'crs' in feature['properties'] and feature['properties']['crs']:
+            crs_value = feature['properties']['crs']
+            if crs_value in SUPPORTED_CRS:
+                if crs_value == SUPPORTED_CRS[0]: # Albers_Equal_Conic_Area_GDA_Western_Australia
+                    target_proj = 'aea'
+                elif crs_value == SUPPORTED_CRS[1]: # GDA94 / Australian Albers
+                    target_proj = 'EPSG:3577'
+            else:
+                raise Exception(f"CRS is not supported. Supported CRS: {SUPPORTED_CRS}")
+    if target_proj:
+        geometry_aea = transform(geometry,target_proj=target_proj)
+    else:
+        geometry_aea = transform(geometry,target_proj='aea') # Use defaul as Albers_Equal_Conic_Area_GDA_Western_Australia
     kmi_server = kmi.get_kmiserver()
+
+
     try:
         area_data["total_area"] = getGeometryArea(geometry_aea,unit,'aea')
     except:
@@ -545,7 +558,10 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                 if not layer_geometry.is_valid:
                    layer_geometry = layer_geometry.buffer(0)      #Times out if reserves is a single massive poly
                   #  return {"status":"failed","data":"invalid polygon in tenure layer, probably the other_tenures layer"}
-                layer_geometry = transform(layer_geometry,target_proj='aea')
+                if target_proj:
+                    layer_geometry = transform(layer_geometry,target_proj=target_proj)
+                else:
+                    layer_geometry = transform(layer_geometry,target_proj='aea')
                 if not isinstance(layer_geometry,Polygon) and not isinstance(layer_geometry,MultiPolygon):
                     continue
                 intersections = extractPolygons(geometry_aea.intersection(layer_geometry))
