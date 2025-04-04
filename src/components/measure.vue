@@ -245,12 +245,12 @@
             })
         } else {
             if (layer[3]["features_remove"]) {
-                layer[1].unByKey(layer[3]["features_remove"])
+                // layer.unByKey(layer[3]["features_remove"])
                 delete layer[3]["features_remove"] 
             }
 
             if (layer[3]["features_add"]) {
-                layer[1].unByKey(layer[3]["features_add"])
+                // layer[1].unByKey(layer[3]["features_add"])
                 delete layer[3]["features_add"] 
             }
 

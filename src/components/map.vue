@@ -3006,7 +3006,7 @@
         if ($("#map .ol-viewport canvas").attr("height")) {
             vm.displayResolution[1] = Math.round(($("#map .ol-viewport canvas").attr("height") /  $("#map .ol-viewport canvas").height()) * 100) / 100
         }
-        // vm.showGraticule(vm.displayGraticule)
+        vm.showGraticule(vm.displayGraticule)
 
         mapStatus.phaseEnd("post-init")
         return true
