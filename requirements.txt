@@ -1,5 +1,5 @@
-Django~=5.0.8
-dbca-utils==2.0.2
+Django==5.2
+dbca-utils==2.1.0
 gunicorn==23.0.0
 gevent==24.11.1
 git+https://github.com/dbca-wa/webtemplate2.git#egg=webtemplate_dbca
@@ -21,7 +21,8 @@ jinja2-context-filters==1.0.0
 boto3==1.35.26
 pyproj>=1.9.5.1
 shapely>=1.6.0
-django-cron==0.6.0
+# django-cron==0.6.0
+git+https://github.com/dbca-wa/django-cron#egg=django-cron
 psycopg2==2.9.7
 psycopg==3.1.10
 requests==2.32.3
