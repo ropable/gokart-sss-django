@@ -226,13 +226,19 @@ SUPPORTED_GEOMETRY_TYPES = ["POINT","LINESTRING","POLYGON","MULTIPOINT","MULTILI
 SUPPORTED_CRS = [
     "Albers_Equal_Conic_Area_GDA_Western_Australia",
     "GDA94 / Australian Albers",
+    "GDA2020 / Australian Albers",
     "WGS 84",
     "Albers Equal Area Conic Western Australia GDA2020",
     "GDA94",
+    "GDA2020",
     "GDA94 / MGA zone 49",
     "GDA94 / MGA zone 50",
     "GDA94 / MGA zone 51",
     "GDA94 / MGA zone 52",
+    "GDA2020 / MGA zone 49",
+    "GDA2020 / MGA zone 50",
+    "GDA2020 / MGA zone 51",
+    "GDA2020 / MGA zone 52",
 ]
 
 #initialize supported spatial format
