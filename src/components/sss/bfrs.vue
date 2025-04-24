@@ -2025,7 +2025,6 @@
                 }
             }
             if ((!vm.taskDialog || !vm.taskDialog.isActive) && caller !== 'showprogress') {
-                console.log("inside show progress function")
                 vm.showProgress(feat);
             }
             if (!callback) {

@@ -208,9 +208,9 @@ def validateCRS(filename):
     proj4_string = gdal_output[0].decode().split('\n')
 
     for line in proj4_string:
-        if line.startswith("PROJCRS"):
-            for crs_name in SUPPORTED_CRS:
-                if crs_name.lower() in line.lower():
+        if line.startswith("PROJCRS") or line.startswith("GEOGCRS"):
+            for crs_name in line.split('"'):
+                if crs_name.lower() in [supported_crs.lower() for supported_crs in SUPPORTED_CRS]:
                     return crs_name
             return False
     return True
@@ -223,7 +223,17 @@ with open(os.path.join(settings.BASE_PATH,"sss","unionlayers.vrt")) as f:
 
 # Vector translation using ogr
 SUPPORTED_GEOMETRY_TYPES = ["POINT","LINESTRING","POLYGON","MULTIPOINT","MULTILINESTRING","MULTIPOLYGON"] 
-SUPPORTED_CRS = ["Albers_Equal_Conic_Area_GDA_Western_Australia", "GDA94 / Australian Albers"]
+SUPPORTED_CRS = [
+    "Albers_Equal_Conic_Area_GDA_Western_Australia",
+    "GDA94 / Australian Albers",
+    "WGS 84",
+    "Albers Equal Area Conic Western Australia GDA2020",
+    "GDA94",
+    "GDA94 / MGA zone 49",
+    "GDA94 / MGA zone 50",
+    "GDA94 / MGA zone 51",
+    "GDA94 / MGA zone 52",
+]
 
 #initialize supported spatial format
 SPATIAL_FORMAT_LIST = [
@@ -371,6 +381,7 @@ def getLayers(datasource,layer=None,srs=None,defaultSrs=None,featureType=None):
     infoIter = None
 
     srs = srs or detectEpsg(datasource) or defaultSrs
+    x = validateCRS(datasource)
 
     #import ipdb;ipdb.set_trace()
     cmd = ["ogrinfo", "-al","-so","-ro"]
@@ -584,6 +595,7 @@ def loadDatasource(session_cookie,workdir,loadedDatasources,options, request):
     #detect srs
     if not options.get("srs"):
         options["srs"] = detectEpsg(options["datasource"][0])
+        x = validateCRS(options["datasource"][0])
     if not options.get("srs") and options.get("default_srs"):
         options["srs"] = options["default_srs"]
 
