@@ -17,9 +17,10 @@ from shapely.geometry.base import BaseGeometry
 from shapely import ops
 from functools import partial
 from sss.models import SpatialDataCalculation
-
+from sss.sss_gdal import SUPPORTED_CRS
 from django.conf import settings
 from sss import kmi
+from pyproj import Geod
 
 proj_aea = lambda geometry: pyproj.Proj("+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
 
@@ -101,21 +102,17 @@ def getShapelyGeometry(feature):
         return shape(feature["geometry"])
 
 
-# this transform function can be used to transofrm EPSG:3577
-# def transform(geometry,src_proj="EPSG:4326",target_proj='EPSG:3577'):
-#     if src_proj == target_proj:
-#         return geometry
-#     else:
-#         transformer = pyproj.Transformer.from_crs(src_proj, target_proj, always_xy=True)
-#         projected_geometry = ops.transform(transformer.transform, geometry)
-#         return projected_geometry
 
 
 
-# this tranform function is used for more accurate area calculation
+# this tranform function is used for more accurate area calculation, currently supports {aea,EPSG:3577}
 def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
     if src_proj == target_proj:
         return geometry
+    elif target_proj == 'EPSG:3577':
+        transformer = pyproj.Transformer.from_crs(src_proj, target_proj, always_xy=True)
+        projected_geometry = ops.transform(transformer.transform, geometry)
+        return projected_geometry
     else:
         if src_proj == 'aea':
             src_proj = proj_aea(geometry)
@@ -139,7 +136,7 @@ def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
         )
 
 
-def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
+def getIntersectionArea(geometry,unit,src_proj="EPSG:4326"):
     """
     Get polygon's area using albers equal conic area
     """
@@ -163,6 +160,42 @@ def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
         return data / 1000000.00
     else:
         return data
+    
+    
+    
+def getGeometryArea(geometry, unit, src_proj="EPSG:4326"):
+    """
+    Get polygon's area directly on the WGS84 ellipsoid using geodetic calculations.
+    """
+    # Define the WGS84 ellipsoid
+    geod = Geod(ellps="WGS84")
+
+    # Ensure the geometry is in a format compatible with pyproj.Geod
+    if geometry.geom_type == "Polygon":
+        # Extract the exterior coordinates of the polygon
+        lon, lat = zip(*list(geometry.exterior.coords))
+        area, _ = geod.polygon_area_perimeter(lon, lat)
+    elif geometry.geom_type == "MultiPolygon":
+        # For MultiPolygon, sum the areas of all individual polygons
+        area = 0
+        for polygon in geometry.geoms:
+            lon, lat = zip(*list(polygon.exterior.coords))
+            poly_area, _ = geod.polygon_area_perimeter(lon, lat)
+            area += poly_area
+    else:
+        raise ValueError("Unsupported geometry type for area calculation")
+
+    # Take the absolute value of the area (geodetic area can be negative)
+    area = abs(area)
+
+    # Convert the area to the desired unit
+    if unit == "ha":
+        return area / 10000.00  # Convert to hectares
+    elif unit == "km2":
+        return area / 1000000.00  # Convert to square kilometers
+    else:
+        return area  # Return area in square meters    
+
 
 degrees2radians = math.pi / 180
 radians2degrees = 180 /math.pi
@@ -460,9 +493,9 @@ def calculateGeometryArea(geometry,src_proj="EPSG:4326",unit='ha'):
     if not valid:
         print("geometry is invalid.{}", msg)
 
-    geometry_aea = transform(geometry,src_proj=src_proj,target_proj='aea')
+    # geometry_aea = transform(geometry,src_proj=src_proj,target_proj='aea')
 
-    return  getGeometryArea(geometry_aea,unit,'aea')
+    return  getGeometryArea(geometry,unit)
 
 
 def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_process=False):
@@ -488,10 +521,14 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    geometry_aea = transform(geometry,target_proj='aea')
+    geometry_aea = transform(geometry,target_proj='aea') # Use default as Albers_Equal_Conic_Area_GDA_Western_Australia
+    
+    # print(geometry_aea)
     kmi_server = kmi.get_kmiserver()
+
+
     try:
-        area_data["total_area"] = getGeometryArea(geometry_aea,unit,'aea')
+        area_data["total_area"] = getGeometryArea(geometry,unit)
     except:
         traceback.print_exc()
         if "invalid" in status:
@@ -574,7 +611,8 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                         #save it into map
                         areas_map[area_key] = layer_feature_area_data
 
-                feature_area = getGeometryArea(intersections,unit,src_proj='aea')
+                # Calculate the area of the intersections
+                feature_area = getIntersectionArea(intersections,unit,src_proj='aea')
                 layer_feature_area_data["area"] += feature_area
                 total_layer_area  += feature_area
 
@@ -611,11 +649,13 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
         return result
 
     if not overlap :
-        area_data["other_area"] = area_data["total_area"] - total_area
+        # original geometry needs to be projected to aea for area calculation
+        total_geometry_area_aea = getIntersectionArea(geometry_aea,unit,src_proj='aea')
+        area_data["other_area"] = total_geometry_area_aea - total_area
         if area_data["other_area"] < -0.01: #tiny difference is allowed.
             #some layers are overlap
             if not settings.CHECK_OVERLAP_IF_CALCULATE_AREA_FAILED:
-                status["overlapped"] = "The sum({0}) of the burning areas in individual layers are ({2}) greater than the total burning area({1}).\r\n The features from layers({3}) are overlaped, please check.".format(round(total_area,2),round(area_data["total_area"],2),round(math.fabs(area_data["other_area"]),2),", ".join([layer["id"] for layer in layers]))
+                status["overlapped"] = "The sum({0}) of the burning areas in individual layers are ({2}) greater than the total burning area({1}).\r\n The features from layers({3}) are overlaped, please check.".format(round(total_area,2),round(total_geometry_area_aea,2),round(math.fabs(area_data["other_area"]),2),", ".join([layer["id"] for layer in layers]))
             else:
                 filename = "/tmp/overlap_{}.log".format(feature["properties"].get("id","feature"))
                 status["overlapped"] = "Features from layers are overlaped,please check the log file in server side '{}'".format(filename)

@@ -558,8 +558,9 @@
         }
         reader.readAsArrayBuffer(file)
       },
-      importVector: function(file,callback,failedCallback) {
-        // upload vector  
+      importVector: function(file,callback,failedCallback,crsValidation) {
+        crsValidation = crsValidation || false
+        // upload vector
         var vm = this
         var fileFormat = this.getFileFormat(file.name)
         if (!fileFormat) {
@@ -592,6 +593,9 @@
                     try{
                         vm._importData = {formData:new window.FormData(),callback:callback,failedCallback:failedCallback}
                         vm._importData.formData.append('datasource', new window.Blob([e.target.result],{type:fileFormat[2]}), file.name)
+                        if(crsValidation){
+                          vm._importData.formData.append('crs_validation', crsValidation);
+                        }
                         var req = new window.XMLHttpRequest()
                         req.open('POST', '/ogrinfo')
                         req.responseType = 'blob'
@@ -708,6 +712,8 @@
                     } else {
                         var features = new ol.format.GeoJSON().readFeatures(req.response,{dataProjection:"EPSG:4326"})
                         if (features && features.length) {
+                          features.forEach(feature => {
+                            feature.set('crs', selectedLayer.crs)});
                             importData.callback(features,fileFormat[0])
                         }
                     }
