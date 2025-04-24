@@ -135,7 +135,6 @@ def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
             geometry
         )
 
-
 def getIntersectionArea(geometry,unit,src_proj="EPSG:4326"):
     """
     Get polygon's area using albers equal conic area
@@ -162,7 +161,7 @@ def getIntersectionArea(geometry,unit,src_proj="EPSG:4326"):
         return data
     
     
-    
+# this function is used to calculate the area of geometrey directly on the WGS84 ellipsoid (This is more accurate as compared to AEA area calculation and can handle multiple CRS)    
 def getGeometryArea(geometry, unit, src_proj="EPSG:4326"):
     """
     Get polygon's area directly on the WGS84 ellipsoid using geodetic calculations.
@@ -528,6 +527,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
 
 
     try:
+        # calculate the area of the geometry directly on the wgs84 sphere
         area_data["total_area"] = getGeometryArea(geometry,unit)
     except:
         traceback.print_exc()
@@ -612,6 +612,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                         areas_map[area_key] = layer_feature_area_data
 
                 # Calculate the area of the intersections
+                #This area is calculated on AEA projection (Reason: the intersections returned from the KMI server are most accurate when projected on AEA as compared to directly calculating it on WGS84)
                 feature_area = getIntersectionArea(intersections,unit,src_proj='aea')
                 layer_feature_area_data["area"] += feature_area
                 total_layer_area  += feature_area
@@ -649,7 +650,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
         return result
 
     if not overlap :
-        # original geometry needs to be projected to aea for area calculation
+        # sum of interstection area needs to be compared with the AEA projection of geometry (geometry_aea) for better accuracy
         total_geometry_area_aea = getIntersectionArea(geometry_aea,unit,src_proj='aea')
         area_data["other_area"] = total_geometry_area_aea - total_area
         if area_data["other_area"] < -0.01: #tiny difference is allowed.
