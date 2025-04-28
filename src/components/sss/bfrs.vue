@@ -1159,6 +1159,9 @@
                 }
             }
             if (vm._taskManager.allTasksSucceed(feat,"getSpatialData")) {
+                if(!spatialData){ //in case spatial_data is lost, reload the spatial data from the backend again
+                    vm.showProgress(vm.target_feature, 'updateBfrsUploadProgress')
+                }
                 if ("region" in spatialData && "district" in spatialData) {
                     var region = null
                     var district = null
