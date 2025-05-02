@@ -60,7 +60,7 @@
      id="g3129">
     <rect
        height="51.377998"
-       width="346.80063"
+       width="250"
        stroke-miterlimit="10"
        y="-29.372999"
        x="-0.44898"
@@ -196,152 +196,7 @@
          x="3.4663973"
          id="tspan3179">{{ legendInfo.date }}</tspan></text>
   </g>
-  <g
-     transform="translate(104,6.0000016)"
-     id="g3181">
-    <line
-       style="font-size:12px;stroke:#000000;stroke-width:1.11360002;stroke-miterlimit:10"
-       y2="42.074001"
-       font-size="12"
-       x2="287.22"
-       stroke-miterlimit="10"
-       y1="19.396999"
-       x1="287.22"
-       id="line3183" />
-    <text
-       style="font-size:12px;font-weight:bold;fill:#000000;font-family:monospace"
-       transform="scale(1.1136239,0.89796924)"
-       font-size="7.7955px"
-       y="47.967857"
-       x="258.76712"
-       font-weight="bold"
-       id="text3185">0</text>
-    <line
-       style="font-size:12px;stroke:#000000;stroke-width:1.11360002;stroke-miterlimit:10"
-       y2="42.074001"
-       font-size="12"
-       x2="322.38"
-       stroke-miterlimit="10"
-       y1="19.396999"
-       x1="322.38"
-       id="line3187" />
-    <text
-       style="font-size:12px;font-weight:bold;fill:#000000;font-family:monospace"
-       transform="scale(1.1136239,0.89796924)"
-       font-size="7.7955px"
-       y="47.967857"
-       x="290.33426"
-       font-weight="bold"
-       id="text3189">1</text>
-    <line
-       style="font-size:12px;stroke:#000000;stroke-width:1.11360002;stroke-miterlimit:10"
-       y2="42.074001"
-       font-size="12"
-       x2="357.54001"
-       stroke-miterlimit="10"
-       y1="19.396999"
-       x1="357.54001"
-       id="line3191" />
-    <text
-       style="font-size:12px;font-weight:bold;fill:#000000;font-family:monospace"
-       transform="scale(1.1136239,0.89796924)"
-       font-size="7.7955px"
-       y="47.967857"
-       x="321.90137"
-       font-weight="bold"
-       id="text3193">2</text>
-    <line
-       style="font-size:12px;stroke:#000000;stroke-width:1.11360002;stroke-miterlimit:10"
-       y2="42.074001"
-       font-size="12"
-       x2="392.67999"
-       stroke-miterlimit="10"
-       y1="19.396999"
-       x1="392.67999"
-       id="line3195" />
-    <text
-       style="font-size:13px;font-weight:bold;fill:#000000;font-family:monospace"
-       transform="scale(1.1136239,0.89796924)"
-       font-size="7.7955px"
-       y="47.967857"
-       x="353.46854"
-       font-weight="bold"
-       id="text3197">3</text>
-    <line
-       style="font-size:12px;stroke:#000000;stroke-width:1.11360002;stroke-miterlimit:10"
-       y2="42.074001"
-       font-size="12"
-       x2="427.84"
-       stroke-miterlimit="10"
-       y1="19.396999"
-       x1="427.84"
-       id="line3199" />
-    <text
-       style="font-size:12px;font-weight:bold;text-anchor:end;fill:#000000;font-family:monospace"
-       transform="scale(1.1136239,0.89796924)"
-       font-size="7.7955px"
-       y="47.967857"
-       x="406.65717"
-       font-weight="bold"
-       id="text3201">4cm</text>
-    <line
-       style="font-size:12px;stroke:#000000;stroke-width:1.11399996;stroke-miterlimit:10"
-       y2="25.287001"
-       font-size="12"
-       x2="286.66"
-       stroke-miterlimit="10"
-       y1="25.287001"
-       x1="428.39999"
-       id="line3203" />
-    <text
-       style="font-size:12.00025729px;font-weight:bold;text-anchor:end;fill:#000000;font-family:monospace"
-       transform="scale(1.1136,0.89795)"
-       font-size="7.7955px"
-       y="17.034184"
-       x="403.25516"
-       font-weight="bold"
-       id="text3205">{{ legendInfo.km }}km</text>
-    <g
-       style="font-size:12px;stroke:#000000;stroke-miterlimit:10"
-       mix-blend-mode="normal"
-       font-size="12"
-       transform="matrix(1.2402,0,0,1,287.22,25.397)"
-       stroke-miterlimit="10"
-       id="g3207">
-      <line
-         x2="14.173"
-         x1="14.173"
-         y2="11.339"
-         id="line3209"
-         y1="0" />
-      <line
-         x2="42.52"
-         x1="42.52"
-         y2="11.339"
-         id="line3211"
-         y1="0" />
-      <line
-         x2="70.865997"
-         x1="70.865997"
-         y2="11.339"
-         id="line3213"
-         y1="0" />
-      <line
-         x2="99.212997"
-         x1="99.212997"
-         y2="11.339"
-         id="line3215"
-         y1="0" />
-    </g>
-    <text
-       style="font-size:12px;font-weight:bold;text-anchor:end;fill:#000000;font-family:monospace"
-       transform="scale(1.1136239,0.89796924)"
-       font-size="7.7955px"
-       y="17.033819"
-       x="331.14337"
-       font-weight="bold"
-       id="text3217">{{ legendInfo.scale }}</text>
-  </g>
+
   <g
      transform="matrix(0.086033,0,0,0.086031,326.26,4.7060016)"
      id="g3219"
@@ -367,4 +222,8 @@
          height="202.33392"
          x="-16.669556"
          y="-43.418858" /></flowRegion><flowPara
-       id="flowPara3035" /></flowRoot></svg>
+       id="flowPara3035" /></flowRoot>
+       
+         <rect x="100%" y="0" width="450" height="120" fill="white" opacity="0.5"/>
+       
+       </svg>
