@@ -239,6 +239,7 @@
   import { kjua, saveAs, moment, $, localforage,hash} from 'src/vendor.js'
   import gkLegend from './legend.vue'
   import gkLayerlegends from './layerlegends.vue'
+  import html2canvas from 'html2canvas'
   export default {
     store: {
         whoami:'whoami', 
@@ -803,6 +804,11 @@
                 this.$root.map.setScale(this.printStatus.layout.scale)
             }
         }
+        // Add scale line to the printed map
+        const scaleLine = new ol.control.ScaleLine({ bar: true, text: true, minWidth: 125 });
+        scaleLine.setDpi(150);
+        vm.olmap.addControl(scaleLine);
+
         //extent is changed because the scale is adjusted to the closest fixed scale, recalculated the extent again
         this.printStatus.layout.extent = this.olmap.getView().calculateExtent(this.olmap.getSize())
 
@@ -839,6 +845,14 @@
             $.each(this.printStatus.controls,function(index,controlKey) {
                 vm.map.enableControl(controlKey,true)
             })
+            const scaleWrapper = document.getElementById('scaleWrapper');
+            const scaleElement = document.querySelector('.ol-scale-bar');
+              if (scaleWrapper) {
+                  scaleWrapper.remove(); // Removes the element from the DOM
+              }
+              if (scaleElement) {
+                  scaleWrapper.remove();
+              }
             this.printStatus.endTime = new Date()
             $('body').css('cursor', 'default')
         }
@@ -936,9 +950,9 @@
         var timer
         var vm = this
         // wait until map is rendered before continuing
-        var whiteout = vm.olmap.on('precompose', function (event) {
-          var mapElement = document.getElementById('map');
-          var canvas = mapElement.querySelector('canvas');
+    var whiteout = vm.olmap.on('precompose', function (event) {
+        var mapElement = document.getElementById('map');
+        var canvas = mapElement.querySelector('canvas');
           var ctx = canvas.getContext('2d')
           ctx.beginPath()
           ctx.rect(0, 0, canvas.width, canvas.height)
@@ -947,18 +961,18 @@
         })
         var mainmap_composing = null
         var overviewmap_composing = null
-        var mapElement = document.getElementById('map');
-        var canvas = mapElement.querySelector('canvas');
+    var mapElement = document.getElementById('map');
+    var canvas = mapElement.querySelector('canvas');
         var overviewmap_canvas = null
         var postcomposeFunc = function() {
           timer && clearTimeout(timer)
-          timer = setTimeout(function () {
+        timer = setTimeout(function () {
             // remove composing watcher
             ol.Observable.unByKey(whiteout);
             ol.Observable.unByKey(mainmap_composing);
             ol.Observable.unByKey(overviewmap_composing);
             var ctx = canvas.getContext('2d')
-
+            
             var img = new window.Image()
             var hashKey = (format !== 'jpg')?vm.hashKey:null
             var legend = vm.renderLegend((format === 'pdf')?hashKey:null)
@@ -970,11 +984,35 @@
               vm.restoreMapFromPrinting()
             }
             img.onload = function () {
-              //draw overview map
-              ctx.drawImage(overviewmap_canvas,canvas.width - overviewmap_canvas.width - 2,2,overviewmap_canvas.width ,overviewmap_canvas.height)
+              // Add Scale bar to the canvas
+              const scaleElement = document.querySelector('.ol-scale-bar');
+              const scaleWrapper = document.createElement('div');
+
+              scaleWrapper.id = 'scaleWrapper';
+              scaleWrapper.style.border = '2px solid black';
+              scaleWrapper.style.position = 'relative';
+              scaleWrapper.style.display = 'inline-block';
+              scaleWrapper.style.width = `${scaleElement.offsetWidth + 40}px`;
+              scaleWrapper.style.padding = '40px'; 
+              scaleWrapper.style.paddingTop = '15px';
+              scaleWrapper.style.background = 'rgba(255, 255, 255, 0.8)';
+
+              // Wrap the scaleElement inside the new wrapper
+              scaleElement.parentNode.insertBefore(scaleWrapper, scaleElement);
+              scaleWrapper.appendChild(scaleElement);
+                // Capture the wrapper instead of the element itself
+                html2canvas(scaleWrapper, { 
+                    logging: true, 
+                    backgroundColor: null 
+                }).then(function(scaleCanvas) {
+                  //draw scale bar
+                ctx.drawImage(scaleCanvas, canvas.width - scaleCanvas.width, 0);
+
+               //draw overview map
+               ctx.drawImage(overviewmap_canvas,canvas.width - overviewmap_canvas.width - 2,2,overviewmap_canvas.width ,overviewmap_canvas.height)
               //draw overview map rectangle
               var box = $(".ol-custom-overviewmap").find(".ol-overviewmap-box")
-              if (box.length) {
+                if (box.length) {
                 var width = box.width() * vm.displayResolution[0]
                 var height = box.height() * vm.displayResolution[1]
                 var x = box.parent().position().left * vm.displayResolution[0]
@@ -984,7 +1022,7 @@
                 ctx.strokeStyle = "red"
                 ctx.lineWidth = 2
                 ctx.stroke()
-              }
+                }
               //draw overview map border
               ctx.beginPath()
               ctx.rect(canvas.width - overviewmap_canvas.width - 4, 0, overviewmap_canvas.width + 4, overviewmap_canvas.height + 4)
@@ -1003,40 +1041,41 @@
                 canvas.height - height, 
                 disclaimerImg.width, 
                 height)
-              //draw qr code
-              if (qrcanvas) {
-                  ctx.drawImage(qrcanvas, 2, canvas.height - qrcanvas.height - 2)
-              }
-              window.URL.revokeObjectURL(url)
-              // generate a jpg copy of the canvas contents
-              var filename = vm.finalTitle.replace(/ +/g, '_')
-              canvas.toBlob(function (blob) {
-                vm.restoreMapFromPrinting()
-                if (format === 'jpg') {
-                  saveAs(blob, filename + '.jpg')
-                } else {
-                  vm.blobGDAL(blob, filename, format,hashKey)
-                }
-              }, 'image/jpeg', 0.9)
+
+                  //draw qr code
+                  if (qrcanvas) {
+                      ctx.drawImage(qrcanvas, 2, canvas.height - qrcanvas.height - 2)
+                    }
+                  window.URL.revokeObjectURL(url);
+                  var filename = vm.finalTitle.replace(/ +/g, '_');
+                            canvas.toBlob(function (blob) {
+                            vm.restoreMapFromPrinting()
+                                if (format === 'jpg') {
+                              saveAs(blob, filename + '.jpg')
+                                } else {
+                              vm.blobGDAL(blob, filename, format,hashKey)
+                                }
+                          }, 'image/jpeg', 0.9)
+                        });
             }
+            
             img.src = url
           // only output after 5 seconds of no tiles
           }, 5000)
         }
         mainmap_composing = vm.olmap.on('postcompose', function (event) {
-          var mapElement = document.getElementById('map');
-          var canvas = mapElement.querySelector('canvas');
+            var mapElement = document.getElementById('map');
+            var canvas = mapElement.querySelector('canvas');
             if (!overviewmap_composing) {
                 overviewmap_composing = vm.map.getControl("overviewMap").getOverviewMap().on('postcompose', function (event) {
-                    overviewmap_canvas = canvas
-                    postcomposeFunc()
-                })
-                vm.map.getControl("overviewMap").getOverviewMap().renderSync()
+                        overviewmap_canvas = canvas
+                        postcomposeFunc()
+                    })
+                    vm.map.getControl("overviewMap").getOverviewMap().renderSync()
             }
-        })
-        vm.olmap.renderSync()
-      }
-,
+            })
+            vm.olmap.renderSync()
+        },
       download: function (key) {
         if (key) {
           // download JSON blob from the state store
