@@ -984,8 +984,32 @@
               vm.restoreMapFromPrinting()
             }
             img.onload = function () {
-              //draw overview map
-              ctx.drawImage(overviewmap_canvas,canvas.width - overviewmap_canvas.width - 2,2,overviewmap_canvas.width ,overviewmap_canvas.height)
+              // Add Scale bar to the canvas
+              const scaleElement = document.querySelector('.ol-scale-bar');
+              const scaleWrapper = document.createElement('div');
+
+              scaleWrapper.id = 'scaleWrapper';
+              scaleWrapper.style.border = '2px solid black';
+              scaleWrapper.style.position = 'relative';
+              scaleWrapper.style.display = 'inline-block';
+              scaleWrapper.style.width = `${scaleElement.offsetWidth + 40}px`;
+              scaleWrapper.style.padding = '40px'; 
+              scaleWrapper.style.paddingTop = '15px';
+              scaleWrapper.style.background = 'rgba(255, 255, 255, 0.8)';
+
+              // Wrap the scaleElement inside the new wrapper
+              scaleElement.parentNode.insertBefore(scaleWrapper, scaleElement);
+              scaleWrapper.appendChild(scaleElement);
+                // Capture the wrapper instead of the element itself
+                html2canvas(scaleWrapper, { 
+                    logging: true, 
+                    backgroundColor: null 
+                }).then(function(scaleCanvas) {
+                  //draw scale bar
+                ctx.drawImage(scaleCanvas, canvas.width - scaleCanvas.width, 0);
+
+               //draw overview map
+               ctx.drawImage(overviewmap_canvas,canvas.width - overviewmap_canvas.width - 2,2,overviewmap_canvas.width ,overviewmap_canvas.height)
               //draw overview map rectangle
               var box = $(".ol-custom-overviewmap").find(".ol-overviewmap-box")
                 if (box.length) {
@@ -1017,31 +1041,13 @@
                 canvas.height - height, 
                 disclaimerImg.width, 
                 height)
-              const scaleElement = document.querySelector('.ol-scale-bar');
-              const scaleWrapper = document.createElement('div');
 
-              scaleWrapper.id = 'scaleWrapper';
-              scaleWrapper.style.border = '2px solid black';
-              scaleWrapper.style.position = 'relative';
-              scaleWrapper.style.display = 'inline-block';
-              scaleWrapper.style.width = `${scaleElement.offsetWidth + 40}px`;
-              scaleWrapper.style.padding = '40px'; 
-              scaleWrapper.style.paddingTop = '15px';
-              scaleWrapper.style.background = 'rgba(255, 255, 255, 0.8)';
-
-              // Wrap the scaleElement inside the new wrapper
-              scaleElement.parentNode.insertBefore(scaleWrapper, scaleElement);
-              scaleWrapper.appendChild(scaleElement);
-
-                // Capture the wrapper instead of the element itself
-                html2canvas(scaleWrapper, { 
-                    logging: true, 
-                    backgroundColor: null 
-                }).then(function(scaleCanvas) {
-
-                ctx.drawImage(scaleCanvas, canvas.width - scaleCanvas.width, 0);
-                                          // Generate a JPG copy of the canvas contents
-                            var filename = vm.finalTitle.replace(/ +/g, '_');
+                  //draw qr code
+                  if (qrcanvas) {
+                      ctx.drawImage(qrcanvas, 2, canvas.height - qrcanvas.height - 2)
+                    }
+                  window.URL.revokeObjectURL(url);
+                  var filename = vm.finalTitle.replace(/ +/g, '_');
                             canvas.toBlob(function (blob) {
                             vm.restoreMapFromPrinting()
                                 if (format === 'jpg') {
@@ -1050,32 +1056,26 @@
                               vm.blobGDAL(blob, filename, format,hashKey)
                                 }
                           }, 'image/jpeg', 0.9)
-                      });
-                  //draw qr code
-                  if (qrcanvas) {
-                      ctx.drawImage(qrcanvas, 2, canvas.height - qrcanvas.height - 2)
-                    }
-                  window.URL.revokeObjectURL(url);
-                
+                        });
             }
+            
             img.src = url
           // only output after 5 seconds of no tiles
           }, 5000)
         }
-    mainmap_composing = vm.olmap.on('postcompose', function (event) {
-        var mapElement = document.getElementById('map');
-        var canvas = mapElement.querySelector('canvas');
-        if (!overviewmap_composing) {
-            overviewmap_composing = vm.map.getControl("overviewMap").getOverviewMap().on('postcompose', function (event) {
-                    overviewmap_canvas = canvas
-                    postcomposeFunc()
-                })
-                vm.map.getControl("overviewMap").getOverviewMap().renderSync()
-        }
-        })
-        vm.olmap.renderSync()
-}
-,
+        mainmap_composing = vm.olmap.on('postcompose', function (event) {
+            var mapElement = document.getElementById('map');
+            var canvas = mapElement.querySelector('canvas');
+            if (!overviewmap_composing) {
+                overviewmap_composing = vm.map.getControl("overviewMap").getOverviewMap().on('postcompose', function (event) {
+                        overviewmap_canvas = canvas
+                        postcomposeFunc()
+                    })
+                    vm.map.getControl("overviewMap").getOverviewMap().renderSync()
+            }
+            })
+            vm.olmap.renderSync()
+        },
       download: function (key) {
         if (key) {
           // download JSON blob from the state store
