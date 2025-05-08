@@ -210,7 +210,7 @@ def validateCRS(filename):
     for line in proj4_string:
         if line.startswith("PROJCRS") or line.startswith("GEOGCRS"):
             for crs_name in line.split('"'):
-                if crs_name.lower() in [supported_crs.lower() for supported_crs in SUPPORTED_CRS]:
+                if crs_name.lower() in [supported_crs.lower() for supported_crs in SUPPORTED_CRS.keys()]:
                     return crs_name
             return False
     return True
@@ -223,23 +223,25 @@ with open(os.path.join(settings.BASE_PATH,"sss","unionlayers.vrt")) as f:
 
 # Vector translation using ogr
 SUPPORTED_GEOMETRY_TYPES = ["POINT","LINESTRING","POLYGON","MULTIPOINT","MULTILINESTRING","MULTIPOLYGON"] 
-SUPPORTED_CRS = [
-    "Albers_Equal_Conic_Area_GDA_Western_Australia",
-    "GDA94 / Australian Albers",
-    "GDA2020 / Australian Albers",
-    "WGS 84",
-    "Albers Equal Area Conic Western Australia GDA2020",
-    "GDA94",
-    "GDA2020",
-    "GDA94 / MGA zone 49",
-    "GDA94 / MGA zone 50",
-    "GDA94 / MGA zone 51",
-    "GDA94 / MGA zone 52",
-    "GDA2020 / MGA zone 49",
-    "GDA2020 / MGA zone 50",
-    "GDA2020 / MGA zone 51",
-    "GDA2020 / MGA zone 52",
-]
+
+SUPPORTED_CRS = {
+    "Albers_Equal_Conic_Area_GDA_Western_Australia": "aea", #no EPSG code for this projection
+    "Albers Equal Area Conic Western Australia GDA2020": "aea", #no EPSG code for this projection
+    "GDA2020": "EPSG:7844",
+    "GDA2020_3D": "EPSG:7844",
+    "GDA94": "EPSG:4283",
+    "GDA94 / MGA zone 49": "EPSG:28349",
+    "GDA94 / MGA zone 50": "EPSG:28350",
+    "GDA94 / MGA zone 51": "EPSG:28351",
+    "GDA94 / MGA zone 52": "EPSG:28352",
+    "GDA2020 / MGA zone 49": "EPSG:7849",
+    "GDA2020 / MGA zone 50": "EPSG:7850",
+    "GDA2020 / MGA zone 51": "EPSG:7851",
+    "GDA2020 / MGA zone 52": "EPSG:7852",
+    "WGS 84": "EPSG:4326",
+    "GDA94 / Australian Albers": "EPSG:3577",
+    "GDA2020 / Australian Albers": "EPSG:9473"
+}
 
 #initialize supported spatial format
 SPATIAL_FORMAT_LIST = [
