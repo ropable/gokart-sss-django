@@ -213,3 +213,22 @@ class SpatialDataCalculation(models.Model):
     error = models.TextField(null=True, blank=True)
     email_sent = models.BooleanField(default=False)
     logs = models.TextField(default='',null=True, blank=True)
+
+class CRSSettings(models.Model):
+    CRS_CHOICES = [
+        ("EPSG:3577", "GDA94 / Australian Albers"),
+        ("EPSG:9473", "GDA2020 / Australian Albers"),
+    ]
+
+    crs = models.CharField(
+        max_length=10,
+        choices=CRS_CHOICES,
+        default="EPSG:3577",  # Default to GDA94 / Australian Albers
+    )
+
+    class Meta:
+        verbose_name = "CRS Setting"
+        verbose_name_plural = "CRS Setting"
+        
+    def __str__(self):
+        return dict(self.CRS_CHOICES)[self.crs]
