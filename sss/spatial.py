@@ -587,8 +587,8 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
             feature_crs_epsg = SUPPORTED_CRS[feature_crs]
             # if(is_geographic_crs(feature_crs_epsg))
             if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
-                selected_map_settings = CRSSettings.objects.first()
-                target_projection = selected_map_settings.crs
+                selected_crs_settings = CRSSettings.objects.first()
+                target_projection = selected_crs_settings.crs
             else:
                 target_projection = feature_crs_epsg  # Use original CRS for projected systems
 
