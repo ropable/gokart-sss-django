@@ -16,7 +16,7 @@ from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.base import BaseGeometry
 from shapely import ops
 from functools import partial
-from sss.models import SpatialDataCalculation
+from sss.models import SpatialDataCalculation, CRSSettings
 from sss.sss_gdal import SUPPORTED_CRS
 from django.conf import settings
 from sss import kmi
@@ -587,7 +587,8 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
             feature_crs_epsg = SUPPORTED_CRS[feature_crs]
             # if(is_geographic_crs(feature_crs_epsg))
             if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
-                target_projection = "EPSG:9473"  # Use GDA2020 / Australian Albers for projection
+                selected_crs_settings = CRSSettings.objects.first()
+                target_projection = selected_crs_settings.crs
             else:
                 target_projection = feature_crs_epsg  # Use original CRS for projected systems
 
