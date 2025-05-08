@@ -20,10 +20,14 @@ from sss.models import SpatialDataCalculation
 from sss.sss_gdal import SUPPORTED_CRS
 from django.conf import settings
 from sss import kmi
-from pyproj import Geod
+from pyproj import CRS
 
 proj_aea = lambda geometry: pyproj.Proj("+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=5000000 +y_0=10000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
 
+def is_geographic_crs(crs_code):
+    """Check if a given CRS uses degrees (latitude/longitude) instead of meters."""
+    crs = CRS(crs_code)
+    return crs.is_geographic
 
 def exportGeojson(feat,fname):
     if isinstance(feat,BaseGeometry):
@@ -109,7 +113,7 @@ def getShapelyGeometry(feature):
 def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
     if src_proj == target_proj:
         return geometry
-    elif target_proj == 'EPSG:3577':
+    elif target_proj != 'aea':
         transformer = pyproj.Transformer.from_crs(src_proj, target_proj, always_xy=True)
         projected_geometry = ops.transform(transformer.transform, geometry)
         return projected_geometry
@@ -160,40 +164,92 @@ def getIntersectionArea(geometry,unit,src_proj="EPSG:4326"):
     else:
         return data
     
+def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
+    """
+    Get polygon's area
+    """
+    data = geometry.area
+    if unit == "ha" :
+        return data / 10000.00
+    elif unit == "km2":
+        return data / 1000000.00
+    else:
+        return data
+    
     
 # this function is used to calculate the area of geometrey directly on the WGS84 ellipsoid (This is more accurate as compared to AEA area calculation and can handle multiple CRS)    
-def getGeometryArea(geometry, unit, src_proj="EPSG:4326"):
-    """
-    Get polygon's area directly on the WGS84 ellipsoid using geodetic calculations.
-    """
-    # Define the WGS84 ellipsoid
-    geod = Geod(ellps="WGS84")
+# def getGeometryArea(geometry, unit, src_proj="EPSG:4326"):
+#     """
+#     Get polygon's area directly on the WGS84 ellipsoid using geodetic calculations.
+#     """
+#     # Define the WGS84 ellipsoid
+#     geod = Geod(ellps="WGS84")
 
-    # Ensure the geometry is in a format compatible with pyproj.Geod
-    if geometry.geom_type == "Polygon":
-        # Extract the exterior coordinates of the polygon
-        lon, lat = zip(*list(geometry.exterior.coords))
-        area, _ = geod.polygon_area_perimeter(lon, lat)
-    elif geometry.geom_type == "MultiPolygon":
-        # For MultiPolygon, sum the areas of all individual polygons
-        area = 0
-        for polygon in geometry.geoms:
-            lon, lat = zip(*list(polygon.exterior.coords))
-            poly_area, _ = geod.polygon_area_perimeter(lon, lat)
-            area += poly_area
-    else:
-        raise ValueError("Unsupported geometry type for area calculation")
+#     # Ensure the geometry is in a format compatible with pyproj.Geod
+#     if geometry.geom_type == "Polygon":
+#         # Extract the exterior coordinates of the polygon
+#         lon, lat = zip(*list(geometry.exterior.coords))
+#         area, _ = geod.polygon_area_perimeter(lon, lat)
+#     elif geometry.geom_type == "MultiPolygon":
+#         # For MultiPolygon, sum the areas of all individual polygons
+#         area = 0
+#         for polygon in geometry.geoms:
+#             lon, lat = zip(*list(polygon.exterior.coords))
+#             poly_area, _ = geod.polygon_area_perimeter(lon, lat)
+#             area += poly_area
+#     else:
+#         raise ValueError("Unsupported geometry type for area calculation")
 
-    # Take the absolute value of the area (geodetic area can be negative)
-    area = abs(area)
+#     # Take the absolute value of the area (geodetic area can be negative)
+#     area = abs(area)
 
-    # Convert the area to the desired unit
-    if unit == "ha":
-        return area / 10000.00  # Convert to hectares
-    elif unit == "km2":
-        return area / 1000000.00  # Convert to square kilometers
-    else:
-        return area  # Return area in square meters    
+#     # Convert the area to the desired unit
+#     if unit == "ha":
+#         return area / 10000.00  # Convert to hectares
+#     elif unit == "km2":
+#         return area / 1000000.00  # Convert to square kilometers
+#     else:
+#         return area  # Return area in square meters    
+
+# from pyproj import Geod, Transformer
+
+# def getGeometryArea(geometry, unit, src_proj="EPSG:3577"):  # Australian Albers (GDA94)
+#     """
+#     Get polygon's area directly on the GDA94 ellipsoid using geodetic calculations.
+#     """
+#     # Define the GDA94 ellipsoid (GRS80)
+#     geod = Geod(ellps="GRS80")  # GDA94 uses GRS80, not WGS84
+#     print("inside this")
+
+#     # Transformer for reprojecting coordinates if needed
+#     print(geometry)
+#     transformer = Transformer.from_crs("EPSG:4326", src_proj, always_xy=True)  # Convert from WGS84 to EPSG:3577
+
+#     if geometry.geom_type == "Polygon":
+#         lon, lat = zip(*list(geometry.exterior.coords))
+#         x, y = transformer.transform(lon, lat)  # Transform to EPSG:3577 (Australian Albers)
+#         print("X, Y coordinates:", x, y)
+#         area, _ = geod.polygon_area_perimeter(x, y)
+#     elif geometry.geom_type == "MultiPolygon":
+#         area = 0
+#         for polygon in geometry.geoms:
+#             lon, lat = zip(*list(polygon.exterior.coords))
+#             x, y = transformer.transform(lon, lat)  # Transform to EPSG:3577
+#             print("X, Y coordinates:", x, y)
+#             poly_area, _ = geod.polygon_area_perimeter(x, y)
+#             area += poly_area
+#     else:
+#         raise ValueError("Unsupported geometry type for area calculation")
+
+#     area = abs(area)
+
+#     if unit == "ha":
+#         return area / 10000.00  # Convert to hectares
+#     elif unit == "km2":
+#         return area / 1000000.00  # Convert to square kilometers
+#     else:
+#         return area  # Return area in square meters
+
 
 
 degrees2radians = math.pi / 180
@@ -520,15 +576,33 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    geometry_aea = transform(geometry,target_proj='aea') # Use default as Albers_Equal_Conic_Area_GDA_Western_Australia
-    
-    # print(geometry_aea)
+    feature_crs = feature['properties'].get('crs', None)
+    if(feature_crs):
+        # Check if the source CRS is supported
+        if feature_crs not in SUPPORTED_CRS.keys():
+            status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
+            return result
+        else:
+            # Get the source CRS from the supported CRS
+            feature_crs_epsg = SUPPORTED_CRS[feature_crs]
+            # if(is_geographic_crs(feature_crs_epsg))
+            if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
+                target_projection = "EPSG:9473"  # Use GDA2020 / Australian Albers for projection
+            else:
+                target_projection = feature_crs_epsg  # Use original CRS for projected systems
+
+            transformed_geometry = transform(geometry, target_proj=target_projection)
+
+    else:
+        # Default to AEA if no CRS is provided
+        transformed_geometry = transform(geometry,target_proj='aea')
+
     kmi_server = kmi.get_kmiserver()
 
 
     try:
         # calculate the area of the geometry directly on the wgs84 sphere
-        area_data["total_area"] = getGeometryArea(geometry,unit)
+        area_data["total_area"] = getGeometryArea(transformed_geometry, unit=unit)
     except:
         traceback.print_exc()
         if "invalid" in status:
@@ -545,7 +619,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
         #export geometry for debug
         properties = feature["properties"]
         properties.update({"area":area_data["total_area"]})
-        exportGeojson((geometry_aea,properties),"/tmp/feature.geojson")
+        exportGeojson((transformed_geometry,properties),"/tmp/feature.geojson")
 
     for layer in layers:
         if "layerid" not in layer and "id" not in layer:
@@ -585,7 +659,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                 layer_geometry = transform(layer_geometry,target_proj='aea')
                 if not isinstance(layer_geometry,Polygon) and not isinstance(layer_geometry,MultiPolygon):
                     continue
-                intersections = extractPolygons(geometry_aea.intersection(layer_geometry))
+                intersections = extractPolygons(transformed_geometry.intersection(layer_geometry))
 
                 if not intersections:
                     continue
@@ -650,8 +724,8 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
         return result
 
     if not overlap :
-        # sum of interstection area needs to be compared with the AEA projection of geometry (geometry_aea) for better accuracy
-        total_geometry_area_aea = getIntersectionArea(geometry_aea,unit,src_proj='aea')
+        # sum of interstection area needs to be compared with the AEA projection of geometry (transformed_geometry) for better accuracy
+        total_geometry_area_aea = getIntersectionArea(transformed_geometry,unit,src_proj='aea')
         area_data["other_area"] = total_geometry_area_aea - total_area
         if area_data["other_area"] < -0.01: #tiny difference is allowed.
             #some layers are overlap
