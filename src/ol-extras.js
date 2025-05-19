@@ -3,8 +3,6 @@
  * Render a grid for a coordinate system on a map.
  * Based on https://github.com/Brictarus/ol3/blob/d41eb87204e76cbf99d61915eb89b1c16c4a4e05/src/ol/graticule.js
  */
-// import ExportComponent from '../components/layers/export.vue';
-
 var labelGrat = function (optOptions) {
   var options = {
     showLabels: true,
