@@ -576,28 +576,30 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    feature_crs = feature['properties'].get('crs', None)
-    if(feature_crs):
-        # Check if the source CRS is supported
-        if feature_crs not in SUPPORTED_CRS.keys():
-            status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
-            return result
-        else:
-            # Get the source CRS from the supported CRS
-            feature_crs_epsg = SUPPORTED_CRS[feature_crs]
-            # if(is_geographic_crs(feature_crs_epsg))
-            if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
-                selected_crs_settings = CRSSettings.objects.first()
-                target_projection = selected_crs_settings.crs
-            else:
-                target_projection = feature_crs_epsg  # Use original CRS for projected systems
+    # feature_crs = feature['properties'].get('crs', None)
+    # if(feature_crs):
+    #     # Check if the source CRS is supported
+    #     if feature_crs not in SUPPORTED_CRS.keys():
+    #         status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
+    #         return result
+    #     else:
+    #         # Get the source CRS from the supported CRS
+    #         feature_crs_epsg = SUPPORTED_CRS[feature_crs]
+    #         # if(is_geographic_crs(feature_crs_epsg))
+    #         if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
+    #             selected_crs_settings = CRSSettings.objects.first()
+    #             target_projection = selected_crs_settings.crs
+    #         else:
+    #             target_projection = feature_crs_epsg  # Use original CRS for projected systems
 
-            transformed_geometry = transform(geometry, target_proj=target_projection)
+    #         transformed_geometry = transform(geometry, target_proj=target_projection)
 
-    else:
-        # Default to AEA if no CRS is provided
-        transformed_geometry = transform(geometry,target_proj='aea')
-
+    # else:
+    #     # Default to AEA if no CRS is provided
+    #     transformed_geometry = transform(geometry,target_proj='aea')
+    selected_crs_settings = CRSSettings.objects.first()
+    target_projection = selected_crs_settings.crs
+    transformed_geometry = transform(geometry, target_proj=target_projection)
     kmi_server = kmi.get_kmiserver()
 
 
@@ -657,7 +659,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
                 if not layer_geometry.is_valid:
                    layer_geometry = layer_geometry.buffer(0)      #Times out if reserves is a single massive poly
                   #  return {"status":"failed","data":"invalid polygon in tenure layer, probably the other_tenures layer"}
-                layer_geometry = transform(layer_geometry,target_proj='aea')
+                layer_geometry = transform(layer_geometry,target_proj=target_projection)
                 if not isinstance(layer_geometry,Polygon) and not isinstance(layer_geometry,MultiPolygon):
                     continue
                 intersections = extractPolygons(transformed_geometry.intersection(layer_geometry))
@@ -688,7 +690,7 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
 
                 # Calculate the area of the intersections
                 #This area is calculated on AEA projection (Reason: the intersections returned from the KMI server are most accurate when projected on AEA as compared to directly calculating it on WGS84)
-                feature_area = getIntersectionArea(intersections,unit,src_proj='aea')
+                feature_area = getGeometryArea(intersections, unit=unit)
                 layer_feature_area_data["area"] += feature_area
                 total_layer_area  += feature_area
 
@@ -726,12 +728,12 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
 
     if not overlap :
         # sum of interstection area needs to be compared with the AEA projection of geometry (transformed_geometry) for better accuracy
-        total_geometry_area_aea = getIntersectionArea(transformed_geometry,unit,src_proj='aea')
-        area_data["other_area"] = total_geometry_area_aea - total_area
+        # total_geometry_area_aea = getIntersectionArea(transformed_geometry,unit,src_proj=target_projection)
+        area_data["other_area"] = area_data["total_area"] - total_area
         if area_data["other_area"] < -0.01: #tiny difference is allowed.
             #some layers are overlap
             if not settings.CHECK_OVERLAP_IF_CALCULATE_AREA_FAILED:
-                status["overlapped"] = "The sum({0}) of the burning areas in individual layers are ({2}) greater than the total burning area({1}).\r\n The features from layers({3}) are overlaped, please check.".format(round(total_area,2),round(total_geometry_area_aea,2),round(math.fabs(area_data["other_area"]),2),", ".join([layer["id"] for layer in layers]))
+                status["overlapped"] = "The sum({0}) of the burning areas in individual layers are ({2}) greater than the total burning area({1}).\r\n The features from layers({3}) are overlaped, please check.".format(round(total_area,2),round(area_data["total_area"],2),round(math.fabs(area_data["other_area"]),2),", ".join([layer["id"] for layer in layers]))
             else:
                 filename = "/tmp/overlap_{}.log".format(feature["properties"].get("id","feature"))
                 status["overlapped"] = "Features from layers are overlaped,please check the log file in server side '{}'".format(filename)
