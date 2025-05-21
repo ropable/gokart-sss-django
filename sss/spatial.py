@@ -219,23 +219,19 @@ def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
 #     """
 #     # Define the GDA94 ellipsoid (GRS80)
 #     geod = Geod(ellps="GRS80")  # GDA94 uses GRS80, not WGS84
-#     print("inside this")
 
 #     # Transformer for reprojecting coordinates if needed
-#     print(geometry)
 #     transformer = Transformer.from_crs("EPSG:4326", src_proj, always_xy=True)  # Convert from WGS84 to EPSG:3577
 
 #     if geometry.geom_type == "Polygon":
 #         lon, lat = zip(*list(geometry.exterior.coords))
 #         x, y = transformer.transform(lon, lat)  # Transform to EPSG:3577 (Australian Albers)
-#         print("X, Y coordinates:", x, y)
 #         area, _ = geod.polygon_area_perimeter(x, y)
 #     elif geometry.geom_type == "MultiPolygon":
 #         area = 0
 #         for polygon in geometry.geoms:
 #             lon, lat = zip(*list(polygon.exterior.coords))
 #             x, y = transformer.transform(lon, lat)  # Transform to EPSG:3577
-#             print("X, Y coordinates:", x, y)
 #             poly_area, _ = geod.polygon_area_perimeter(x, y)
 #             area += poly_area
 #     else:
@@ -576,30 +572,28 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    # feature_crs = feature['properties'].get('crs', None)
-    # if(feature_crs):
-    #     # Check if the source CRS is supported
-    #     if feature_crs not in SUPPORTED_CRS.keys():
-    #         status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
-    #         return result
-    #     else:
-    #         # Get the source CRS from the supported CRS
-    #         feature_crs_epsg = SUPPORTED_CRS[feature_crs]
-    #         # if(is_geographic_crs(feature_crs_epsg))
-    #         if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
-    #             selected_crs_settings = CRSSettings.objects.first()
-    #             target_projection = selected_crs_settings.crs
-    #         else:
-    #             target_projection = feature_crs_epsg  # Use original CRS for projected systems
+    feature_crs = feature['properties'].get('crs', None)
+    if(feature_crs):
+        # Check if the source CRS is supported
+        if feature_crs not in SUPPORTED_CRS.keys():
+            status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
+            return result
+        else:
+            # Get the source CRS from the supported CRS
+            feature_crs_epsg = SUPPORTED_CRS[feature_crs]
+            # if(is_geographic_crs(feature_crs_epsg))
+            if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
+                selected_crs_settings = CRSSettings.objects.first()
+                target_projection = selected_crs_settings.crs
+            else:
+                target_projection = feature_crs_epsg  # Use original CRS for projected systems
 
-    #         transformed_geometry = transform(geometry, target_proj=target_projection)
+            transformed_geometry = transform(geometry, target_proj=target_projection)
 
-    # else:
-    #     # Default to AEA if no CRS is provided
-    #     transformed_geometry = transform(geometry,target_proj='aea')
-    selected_crs_settings = CRSSettings.objects.first()
-    target_projection = selected_crs_settings.crs
-    transformed_geometry = transform(geometry, target_proj=target_projection)
+    else:
+        # Default to AEA if no CRS is provided
+        target_projection = 'aea'
+        transformed_geometry = transform(geometry,target_proj=target_projection)
     kmi_server = kmi.get_kmiserver()
 
 
@@ -728,7 +722,6 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
 
     if not overlap :
         # sum of interstection area needs to be compared with the AEA projection of geometry (transformed_geometry) for better accuracy
-        # total_geometry_area_aea = getIntersectionArea(transformed_geometry,unit,src_proj=target_projection)
         area_data["other_area"] = area_data["total_area"] - total_area
         if area_data["other_area"] < -0.01: #tiny difference is allowed.
             #some layers are overlap
