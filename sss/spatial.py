@@ -572,28 +572,33 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    feature_crs = feature['properties'].get('crs', None)
-    if(feature_crs):
-        # Check if the source CRS is supported
-        if feature_crs not in SUPPORTED_CRS.keys():
-            status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
-            return result
-        else:
-            # Get the source CRS from the supported CRS
-            feature_crs_epsg = SUPPORTED_CRS[feature_crs]
-            # if(is_geographic_crs(feature_crs_epsg))
-            if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
-                selected_crs_settings = CRSSettings.objects.first()
-                target_projection = selected_crs_settings.crs
-            else:
-                target_projection = feature_crs_epsg  # Use original CRS for projected systems
+    # feature_crs = feature['properties'].get('crs', None)
+    # if(feature_crs):
+    #     # Check if the source CRS is supported
+    #     if feature_crs not in SUPPORTED_CRS.keys():
+    #         status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
+    #         return result
+    #     else:
+    #         # Get the source CRS from the supported CRS
+    #         feature_crs_epsg = SUPPORTED_CRS[feature_crs]
+    #         # if(is_geographic_crs(feature_crs_epsg))
+    #         if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
+    #             selected_crs_settings = CRSSettings.objects.first()
+    #             target_projection = selected_crs_settings.crs
+    #         else:
+    #             target_projection = feature_crs_epsg  # Use original CRS for projected systems
 
-            transformed_geometry = transform(geometry, target_proj=target_projection)
+    #         transformed_geometry = transform(geometry, target_proj=target_projection)
 
-    else:
-        # Default to AEA if no CRS is provided
-        target_projection = 'aea'
-        transformed_geometry = transform(geometry,target_proj=target_projection)
+    # else:
+    #     # Default to AEA if no CRS is provided
+    #     target_projection = 'aea'
+    #     transformed_geometry = transform(geometry,target_proj=target_projection)
+        
+    # target_projection = ''
+    selected_crs_settings = CRSSettings.objects.first()
+    target_projection = selected_crs_settings.crs
+    transformed_geometry = transform(geometry, target_proj=target_projection)
     kmi_server = kmi.get_kmiserver()
 
 
