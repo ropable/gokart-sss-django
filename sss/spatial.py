@@ -139,32 +139,8 @@ def transform(geometry,src_proj="EPSG:4326",target_proj='aea'):
             geometry
         )
 
-def getIntersectionArea(geometry,unit,src_proj="EPSG:4326"):
-    """
-    Get polygon's area using albers equal conic area
-    """
-    if src_proj == 'aea':
-        geometry_aea = geometry
-    else:
-        geometry_aea = ops.transform(
-            partial(
-                pyproj.transform,
-                pyproj.Proj(init=src_proj),
-                #pyproj.Proj(proj="aea",lat1=geometry.bounds[1],lat2=geometry.bounds[3])
-                #use projection 'Albers Equal Conic Area for WA' to calcuate the area
-                proj_aea(geometry)
-            ),
-            geometry
-        )
-    data = geometry_aea.area
-    if unit == "ha" :
-        return data / 10000.00
-    elif unit == "km2":
-        return data / 1000000.00
-    else:
-        return data
     
-def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
+def getGeometryArea(geometry,unit):
     """
     Get polygon's area
     """
@@ -177,74 +153,6 @@ def getGeometryArea(geometry,unit,src_proj="EPSG:4326"):
         return data
     
     
-# this function is used to calculate the area of geometrey directly on the WGS84 ellipsoid (This is more accurate as compared to AEA area calculation and can handle multiple CRS)    
-# def getGeometryArea(geometry, unit, src_proj="EPSG:4326"):
-#     """
-#     Get polygon's area directly on the WGS84 ellipsoid using geodetic calculations.
-#     """
-#     # Define the WGS84 ellipsoid
-#     geod = Geod(ellps="WGS84")
-
-#     # Ensure the geometry is in a format compatible with pyproj.Geod
-#     if geometry.geom_type == "Polygon":
-#         # Extract the exterior coordinates of the polygon
-#         lon, lat = zip(*list(geometry.exterior.coords))
-#         area, _ = geod.polygon_area_perimeter(lon, lat)
-#     elif geometry.geom_type == "MultiPolygon":
-#         # For MultiPolygon, sum the areas of all individual polygons
-#         area = 0
-#         for polygon in geometry.geoms:
-#             lon, lat = zip(*list(polygon.exterior.coords))
-#             poly_area, _ = geod.polygon_area_perimeter(lon, lat)
-#             area += poly_area
-#     else:
-#         raise ValueError("Unsupported geometry type for area calculation")
-
-#     # Take the absolute value of the area (geodetic area can be negative)
-#     area = abs(area)
-
-#     # Convert the area to the desired unit
-#     if unit == "ha":
-#         return area / 10000.00  # Convert to hectares
-#     elif unit == "km2":
-#         return area / 1000000.00  # Convert to square kilometers
-#     else:
-#         return area  # Return area in square meters    
-
-# from pyproj import Geod, Transformer
-
-# def getGeometryArea(geometry, unit, src_proj="EPSG:3577"):  # Australian Albers (GDA94)
-#     """
-#     Get polygon's area directly on the GDA94 ellipsoid using geodetic calculations.
-#     """
-#     # Define the GDA94 ellipsoid (GRS80)
-#     geod = Geod(ellps="GRS80")  # GDA94 uses GRS80, not WGS84
-
-#     # Transformer for reprojecting coordinates if needed
-#     transformer = Transformer.from_crs("EPSG:4326", src_proj, always_xy=True)  # Convert from WGS84 to EPSG:3577
-
-#     if geometry.geom_type == "Polygon":
-#         lon, lat = zip(*list(geometry.exterior.coords))
-#         x, y = transformer.transform(lon, lat)  # Transform to EPSG:3577 (Australian Albers)
-#         area, _ = geod.polygon_area_perimeter(x, y)
-#     elif geometry.geom_type == "MultiPolygon":
-#         area = 0
-#         for polygon in geometry.geoms:
-#             lon, lat = zip(*list(polygon.exterior.coords))
-#             x, y = transformer.transform(lon, lat)  # Transform to EPSG:3577
-#             poly_area, _ = geod.polygon_area_perimeter(x, y)
-#             area += poly_area
-#     else:
-#         raise ValueError("Unsupported geometry type for area calculation")
-
-#     area = abs(area)
-
-#     if unit == "ha":
-#         return area / 10000.00  # Convert to hectares
-#     elif unit == "km2":
-#         return area / 1000000.00  # Convert to square kilometers
-#     else:
-#         return area  # Return area in square meters
 
 
 
@@ -572,33 +480,36 @@ def _calculateArea(feature,kmiserver,session_cookies,options,run_in_other_proces
     #valid,msg = geometry.check_valid
     #if not valid:
     #    status["invalid"] = msg
-    # feature_crs = feature['properties'].get('crs', None)
-    # if(feature_crs):
-    #     # Check if the source CRS is supported
-    #     if feature_crs not in SUPPORTED_CRS.keys():
-    #         status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
-    #         return result
-    #     else:
-    #         # Get the source CRS from the supported CRS
-    #         feature_crs_epsg = SUPPORTED_CRS[feature_crs]
-    #         # if(is_geographic_crs(feature_crs_epsg))
-    #         if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg):
-    #             selected_crs_settings = CRSSettings.objects.first()
-    #             target_projection = selected_crs_settings.crs
-    #         else:
-    #             target_projection = feature_crs_epsg  # Use original CRS for projected systems
+    
+    TRANSFORM_TO_ORIGINAL_CRS = False # Set this to true if want to transfer the geometry to the original CRS of the feature before calculating area, else it will use the CRS specified in the CRSSettings
 
-    #         transformed_geometry = transform(geometry, target_proj=target_projection)
+    if TRANSFORM_TO_ORIGINAL_CRS:
+        feature_crs = feature['properties'].get('crs', None)
+        if(feature_crs):
+            # Check if the source CRS is supported
+            if feature_crs not in SUPPORTED_CRS.keys():
+                status["invalid"] = "Unsupported source CRS: {}".format(feature_crs)
+                return result
+            else:
+                # Get the source CRS from the supported CRS
+                feature_crs_epsg = SUPPORTED_CRS[feature_crs]
+                if feature_crs_epsg.lower().startswith("epsg") and is_geographic_crs(feature_crs_epsg): # If the source CRS is geographic (degrees), we will transform it to the target projection specified in the CRSSettings
+                    selected_crs_settings = CRSSettings.objects.first()
+                    target_projection = selected_crs_settings.crs
+                else:
+                    target_projection = feature_crs_epsg  # Use original CRS for projected systems
 
-    # else:
-    #     # Default to AEA if no CRS is provided
-    #     target_projection = 'aea'
-    #     transformed_geometry = transform(geometry,target_proj=target_projection)
-        
-    # target_projection = ''
-    selected_crs_settings = CRSSettings.objects.first()
-    target_projection = selected_crs_settings.crs
-    transformed_geometry = transform(geometry, target_proj=target_projection)
+                transformed_geometry = transform(geometry, target_proj=target_projection)
+
+        else:
+            # Default to AEA if no CRS is provided
+            target_projection = 'aea'
+            transformed_geometry = transform(geometry,target_proj=target_projection)
+    else:
+        selected_crs_settings = CRSSettings.objects.first()
+        target_projection = selected_crs_settings.crs
+        transformed_geometry = transform(geometry, target_proj=target_projection)
+
     kmi_server = kmi.get_kmiserver()
 
 
