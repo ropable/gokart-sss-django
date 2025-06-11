@@ -203,8 +203,8 @@
               <template v-for="f in featurelist" track-by="get('id')">
               <div class="row feature-row" v-if="showFeature(f)" v-bind:class="{'feature-selected': isFeatureSelected(f) }" @click="toggleSelect(f)">
                 <div class="columns">
-                  <!--a v-if="whoami.editVehicle && ['tracplus','dfes'].indexOf(f.get('source_device_type')) < 0" @click.stop.prevent="utils.editResource($event)" title="Edit resource" href="{{env.resourceTrackingService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="{{env.resourceTrackingService}}" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a-->
-                  <a v-if=" ['tracplus','dfes'].indexOf(f.get('source_device_type')) < 0" @click.stop.prevent="utils.editResource($event)" title="Edit resource" href="{{env.resourceTrackingService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="{{env.resourceTrackingService}}" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <!--a v-if="whoami.editVehicle && ['tracplus','dfes'].indexOf(f.get('source_device_type')) < 0" @click.stop.prevent="utils.editResource($event)" title="Edit resource" href="{{env.resourceTrackingService}}/devices/{{ f.get('id') }}/update/" target="{{env.resourceTrackingService}}" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a-->
+                  <a v-if=" ['tracplus','dfes'].indexOf(f.get('source_device_type')) < 0" @click.stop.prevent="utils.editResource($event)" title="Edit resource" href="{{env.resourceTrackingService}}/devices/{{ f.get('id') }}/update/" target="{{env.resourceTrackingService}}" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
                   
 				  <div class="feature-title"><img class="feature-icon" id="device-icon-{{f.get('id')}}" v-bind:src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i>
                   </div>
@@ -1105,7 +1105,7 @@
                 
                 var f = features.find(function(f) {return f.get('source_device_type') != "tracplus"})
                 if (f){
-                    utils.checkPermission(vm.env.resourceTrackingService + "/sss_admin/tracking/device/" + f.get('id') + "/change/","GET",function(allowed){
+                    utils.checkPermission(vm.env.resourceTrackingService + "/devices/" + f.get('id') + "/update/","GET",function(allowed){
                         vm.whoami.editVehicle = allowed
                         
                         processResources()
