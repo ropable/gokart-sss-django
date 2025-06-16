@@ -40,6 +40,7 @@ class MapServer(admin.ModelAdmin):
 @admin.register(models.CatalogueSyncCSW)
 class MapServer(admin.ModelAdmin):
     list_display = ('id', 'identifier', 'active', 'removed_from_csw', 'updated', 'created')
+    search_fields = ('id', 'identifier',)
     readonly_fields = ['updated', 'created','json_data','identifier','csw_id']
 
 admin.site.register(models.Region)
