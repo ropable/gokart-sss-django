@@ -34,7 +34,7 @@ SECRET_KEY = decouple.config("SECRET_KEY")
 MAPBOX_ACCESS_TOKEN = decouple.config("MAPBOX_ACCESS_TOKEN", default="default")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = decouple.config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS=[""]
 if DEBUG is True:
