@@ -11,7 +11,12 @@ from typing import Any
 
 
 def variables(request):
-    kmi_server = MapServer.objects.get(name='kmi').url
+    kmi_server = ""
+    try: 
+        kmi_server = MapServer.objects.get(name='kmi').url
+    except:
+        print ("ERROR: getting kmi map server") 
+        
     base_url = f"{request.scheme}://{request.get_host()}"
     # Construct and return context  
     return {
