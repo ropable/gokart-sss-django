@@ -8,3 +8,4 @@
 # *  *  *  *  * Command
 
 */2 * * * * python /app/manage.py runcrons >> /app/logs/cronjob.log 2>&1
+1 0 * * 0  /bin/log_rotate.sh  >> /app/logs/log_rotate.log 2>&1
