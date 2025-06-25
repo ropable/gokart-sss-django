@@ -447,8 +447,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 def gdal(request, fmt):
     if request.user.is_authenticated:
         print("GENERATING: " + fmt)
-        if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
-            instance_format = settings.EMAIL_INSTANCE + '_'
+        instance_format = settings.EMAIL_INSTANCE + '_'
+        # if settings.EMAIL_INSTANCE == "UAT" or settings.EMAIL_INSTANCE == "DEV":
+        #     instance_format = settings.EMAIL_INSTANCE + '_'
         
         jpg = request.FILES.get("jpg")
         chunk = request.FILES.get("chunk")
