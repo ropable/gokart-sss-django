@@ -5,7 +5,6 @@ from django.views.generic import base
 from django.contrib import auth
 from django import conf
 from django.shortcuts import redirect
-from django.contrib import messages
 
 class HomePage(base.TemplateView):
     """Home page view."""
