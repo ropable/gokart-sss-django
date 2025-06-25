@@ -4,6 +4,8 @@ from django import shortcuts
 from django.views.generic import base
 from django.contrib import auth
 from django import conf
+from django.shortcuts import redirect
+from django.contrib import messages
 
 class HomePage(base.TemplateView):
     """Home page view."""
@@ -31,6 +33,9 @@ class HomePage(base.TemplateView):
         else:
             return shortcuts.render(request, self.error_template, context)
         # Render Template and Return
+
+def sss_redirect(request):
+    return redirect('home')
 
 
         
