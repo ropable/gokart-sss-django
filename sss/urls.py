@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/mapbox.json', api.api_mapbox, name='api_mapbox_api'),
     path('admin/', admin.site.urls),
     path("", views.HomePage.as_view(), name="home"),
+    path("sss/", views.sss_redirect),
     path("outlookmetadata", api.outlookmetadata, name='api_outlookmetadata'),
     path("api/environment_config.js", api.environment_config, name='environment_config'),
     path("dist/static/js/gokart.js", api.gokart_js, name='gokart_js'),
