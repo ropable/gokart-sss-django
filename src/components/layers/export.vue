@@ -789,7 +789,7 @@
         this.printStatus.layout.height = this.paperSizes[this.paperSize][1]
         //adjust the map for printing.
         if (this.settings.print.retainBoundingbox) {
-            this.printStatus.layout.size = [this.printStatus.dpmm * this.printStatus.layout.width, this.printStatus.dpmm * this.printStatus.layout.height]
+            this.printStatus.layout.size = [this.dpmm * this.printStatus.layout.width, this.dpmm * this.printStatus.layout.height]
             this.olmap.setSize(this.printStatus.layout.size)
             this.olmap.getView().fit(this.printStatus.oldLayout.extent, this.olmap.getSize())
             this.printStatus.layout.scale = (this.settings.print.snapToFixedScale)?this.$root.map.getFixedScale():this.$root.map.getScale()
@@ -798,15 +798,27 @@
             }
         } else {
             this.printStatus.layout.scale = (this.settings.print.snapToFixedScale)?this.$root.map.getFixedScale(this.printStatus.oldLayout.scale):this.printStatus.oldLayout.scale
-            this.printStatus.layout.size = [this.printStatus.dpmm * this.printStatus.layout.width, this.printStatus.dpmm * this.printStatus.layout.height]
+            this.printStatus.layout.size = [this.dpmm * this.printStatus.layout.width, this.dpmm * this.printStatus.layout.height]
             this.olmap.setSize(this.printStatus.layout.size)
             if (this.settings.print.snapToFixedScale) {
                 this.$root.map.setScale(this.printStatus.layout.scale)
             }
         }
         // Add scale line to the printed map
+        const resolution = ol.proj.getPointResolution(
+          "EPSG:4326",
+          this.olmap.getView().getResolution(),
+          this.olmap.getView().getCenter(),
+          'm',
+        );
+        const dpi = 96;
+        const inchesPerMeter = 1000 / 25.4;
+        newscale = resolution * inchesPerMeter * dpi / 1000;
+
+        //resolution adjusted according to the printed map
+        vm.olmap.getView().setResolution(this.olmap.getView().getResolution() * this.printStatus.layout.scale / newscale);
         const scaleLine = new ol.control.ScaleLine({ bar: true, text: true, minWidth: 125 });
-        scaleLine.setDpi(150);
+        scaleLine.setDpi(this.dpmm*25.4);
         vm.olmap.addControl(scaleLine);
 
         //extent is changed because the scale is adjusted to the closest fixed scale, recalculated the extent again
