@@ -485,7 +485,7 @@ ol.control.ScaleLine.prototype.getScaleForResolution = function(){
   );
   const dpi = this.dpi_ || DEFAULT_DPI;
   const inchesPerMeter = 1000 / 25.4;
-  return resolution * inchesPerMeter * dpi * 0.9237;
+  return resolution * inchesPerMeter * dpi ;
 }
 
 

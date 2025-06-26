@@ -805,8 +805,20 @@
             }
         }
         // Add scale line to the printed map
+        const resolution = ol.proj.getPointResolution(
+          "EPSG:4326",
+          this.olmap.getView().getResolution(),
+          this.olmap.getView().getCenter(),
+          'm',
+        );
+        const dpi = 96;
+        const inchesPerMeter = 1000 / 25.4;
+        newscale = resolution * inchesPerMeter * dpi / 1000;
+
+        //resolution adjusted according to the printed map
+        vm.olmap.getView().setResolution(this.olmap.getView().getResolution() * this.printStatus.layout.scale / newscale);
         const scaleLine = new ol.control.ScaleLine({ bar: true, text: true, minWidth: 125 });
-        scaleLine.setDpi(150);
+        scaleLine.setDpi(this.dpmm*25.4);
         vm.olmap.addControl(scaleLine);
 
         //extent is changed because the scale is adjusted to the closest fixed scale, recalculated the extent again
