@@ -789,7 +789,7 @@
         this.printStatus.layout.height = this.paperSizes[this.paperSize][1]
         //adjust the map for printing.
         if (this.settings.print.retainBoundingbox) {
-            this.printStatus.layout.size = [this.printStatus.dpmm * this.printStatus.layout.width, this.printStatus.dpmm * this.printStatus.layout.height]
+            this.printStatus.layout.size = [this.dpmm * this.printStatus.layout.width, this.dpmm * this.printStatus.layout.height]
             this.olmap.setSize(this.printStatus.layout.size)
             this.olmap.getView().fit(this.printStatus.oldLayout.extent, this.olmap.getSize())
             this.printStatus.layout.scale = (this.settings.print.snapToFixedScale)?this.$root.map.getFixedScale():this.$root.map.getScale()
@@ -798,7 +798,7 @@
             }
         } else {
             this.printStatus.layout.scale = (this.settings.print.snapToFixedScale)?this.$root.map.getFixedScale(this.printStatus.oldLayout.scale):this.printStatus.oldLayout.scale
-            this.printStatus.layout.size = [this.printStatus.dpmm * this.printStatus.layout.width, this.printStatus.dpmm * this.printStatus.layout.height]
+            this.printStatus.layout.size = [this.dpmm * this.printStatus.layout.width, this.dpmm * this.printStatus.layout.height]
             this.olmap.setSize(this.printStatus.layout.size)
             if (this.settings.print.snapToFixedScale) {
                 this.$root.map.setScale(this.printStatus.layout.scale)
