@@ -419,7 +419,7 @@
 	methods: {
       adjustHeight: function() {
         if (this.activeMenu === "thermal") {
-            $("#hotspot-list").height(this.screenHeight - this.leftPanelHeadHeight - 350 - $("#hotspot-list-controller-container").height() - this.hintsHeight)
+            $("#hotspot-list").height((this.screenHeight - this.leftPanelHeadHeight - $("#thermal-list-controller-container").height() - this.hintsHeight)*0.83)
         }
       },
 	  
