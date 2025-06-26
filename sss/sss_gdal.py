@@ -100,6 +100,20 @@ def gdal_convert(request, fmt):
     for chunk in file_content.chunks():
         fout.write(chunk)
     fout.close()
+
+
+    # copy input and output file to temp disk storage
+    disk_temp_dir = "/" + settings.TEMP_DIR + "/temp_storage"
+    os.makedirs(disk_temp_dir, exist_ok=True)
+
+    input_temp_path = os.path.join(disk_temp_dir, os.path.basename(path))
+    shutil.copy2(path, input_temp_path)
+
+    output_temp_path = os.path.join(disk_temp_dir, os.path.basename(output_filepath))
+
+    path = input_temp_path
+    output_filepath = output_temp_path
+
     #---
     #shutil.copy(jpg.name, workdir)
     #jpg.save(workdir)
@@ -124,6 +138,11 @@ def gdal_convert(request, fmt):
             for chunk in file_content.chunks():
                 fout.write(chunk)
             fout.close()
+            
+            # copy legend file to temp disk storage
+            legend_temp_path = os.path.join(disk_temp_dir, os.path.basename(legends_path))
+            shutil.copy2(legends_path, legend_temp_path)
+            legends_path = legend_temp_path
 
             
     else:

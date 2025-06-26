@@ -245,7 +245,7 @@ BOM_FTP_USERNAME = decouple.config("BOM_FTP_USERNAME", default="")
 BOM_FTP_PASSWORD = decouple.config("BOM_FTP_PASSWORD", default="")
 BOM_FTP_DIRECTORY = decouple.config("BOM_FTP_DIRECTORY", default="")
 
-TEMP_DIR = decouple.config("TEMP_DIR", default="temp")
+TEMP_DIR = decouple.config("TEMP_DIR", default="tmp")
 
 PERTH_TIMEZONE = datetime.datetime.now(pytz.timezone('Australia/Perth')).tzinfo
 
