@@ -181,15 +181,20 @@
                         url = vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
                     }
                     var isOpen = $("#userdialog").is(":visible")
-
+                    console.log("check few")
+                    console.log(isOpen)
+                    console.log(!vm.feature_processing)
+                    console.log(vm.layer.id)
                     if (!isOpen && !vm.feature_processing) {
                         vm.feature_processing = true
                         $.ajax({
                         url:url,
                         dataType:"json",
                         success: function (response, stat, xhr) {
+                            console.log("inside the response")
                             if (response.totalFeatures < 1) {
                                 vm.warning = true
+                                vm.feature_processing = false
                                 return
                             }
 
@@ -202,6 +207,7 @@
                                 var messages = []
                                 $.each(response.features[0].properties,function(key,value) {
                                     if (['ogc_fid','md5_rowhash'].indexOf(key) >= 0){
+                                        vm.feature_processing = false
                                         return
                                     }
                                     if (vm.dialog.isLink(value)) {
@@ -231,6 +237,7 @@
                                     var vm = this
                                     $.each(response.features[index - 1].properties,function(key,value) {
                                         if (['ogc_fid','md5_rowhash'].indexOf(key) >= 0){
+                                            vm.feature_processing = false
                                             return
                                         }
                                         vm.messages[propertyIndex][1][0]= value
@@ -276,6 +283,7 @@
                         },
                         error: function (xhr,status,message) {
                             vm.warning = true
+                            console.log("set false2")
                             vm.feature_processing = false
                             alert(xhr.status + " : " + (xhr.responseText || message))
                         },
