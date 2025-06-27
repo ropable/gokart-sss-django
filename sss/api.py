@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from sss import raster
 from sss import sss_gdal
 from sss import spatial as sss_spatial
+import shutil
 import os 
 import requests
 import base64
@@ -474,9 +475,15 @@ def gdal(request, fmt):
             start = int(request.POST.get("start"))
             end = int(request.POST.get("end"))
             total_size = int(request.POST.get("totalSize"))
+            upload_id = request.POST.get("upload_id")
+            workdir = os.path.join(str(settings.BASE_DIR), settings.TEMP_DIR)
+            upload_folder = os.path.join(workdir, str(upload_id))
+            os.makedirs(upload_folder, exist_ok=True)
 
-            # Use a temporary file to store chunks
-            temp_filename = instance_format + "upload_temp_file.jpg"
+            # Create a temp file
+            temp_filename = os.path.join(upload_folder, instance_format + "upload_temp_file.jpg")
+
+            # Write the chunk into the file at the correct offset
             with open(temp_filename, 'ab') as temp_file:
                 temp_file.seek(start)
                 temp_file.write(chunk.read())
@@ -486,7 +493,7 @@ def gdal(request, fmt):
                     merged_jpg = SimpleUploadedFile(name=instance_format + "merged.jpg", content=final_file.read(), content_type='image/jpeg')
                     print('file size')
                     print(os.path.getsize(temp_filename))
-                    os.remove(temp_filename)
+                    shutil.rmtree(upload_folder, ignore_errors=True)
                     request.FILES['jpg'] = merged_jpg
                     
                     try:

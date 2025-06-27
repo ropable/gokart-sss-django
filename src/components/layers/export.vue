@@ -880,7 +880,7 @@
       var _func = function(legendData) {
           try {
               // Function to split the Blob into chunks and send each chunk
-              var sendChunk = function(start) {
+              var sendChunk = function(start, uploadId) {
                   var end = Math.min(start + vm.chunkSize * 1024, blob.size); // 200KB
                   var chunk = blob.slice(start, end);
 
@@ -890,6 +890,7 @@
                   formData.append('start', start);
                   formData.append('end', end);
                   formData.append('totalSize', blob.size);
+                  formData.append('upload_id', uploadId);
 
                   if (format === "pdf" && legendData) {
                       formData.append('legends', legendData, name + '.legend.pdf');
@@ -910,7 +911,7 @@
                       if (req.status >= 200 && req.status < 300) {
                           if (end < blob.size) {
                               // Send the next chunk
-                              sendChunk(end);
+                              sendChunk(end, uploadId);
                           } else {
                               saveAs(req.response, name + '.' + format);
                           }
@@ -938,9 +939,13 @@
 
                   req.send(formData);
               };
-
+              
+              var uploadId = ([1e7]+-1e3+-4e3+-8e3+-1e11)
+                .replace(/[018]/g, c =>
+                  (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
               // Start sending chunks
-              sendChunk(0);
+              sendChunk(0,uploadId);
           } catch (error) {
               alert('An error occurred: ' + error.message);
           }
