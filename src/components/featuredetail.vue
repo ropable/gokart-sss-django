@@ -14,7 +14,8 @@
         layer:{},
         layers:[],
         showLayers:false,
-        warning:false
+        warning:false,
+        feature_processing:false,
       }
 
     },
@@ -42,7 +43,10 @@
         return this.layers
       }
     },
-    watch:{
+    watch: {
+        'active.olLayers': function () {
+            this.set_featureinfo_layer();
+        }
     },
     // methods callable from inside the template
     methods: {
@@ -176,7 +180,11 @@
                     } else {
                         url = vm.env.kmiService + "/wfs?service=wfs&version=2.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=" + getDetailLayerId(vm.layer.id) + bbox
                     }
-                    $.ajax({
+                    var isOpen = $("#userdialog").is(":visible")
+
+                    if (!isOpen && !vm.feature_processing) {
+                        vm.feature_processing = true
+                        $.ajax({
                         url:url,
                         dataType:"json",
                         success: function (response, stat, xhr) {
@@ -264,16 +272,18 @@
                                     footer:footer
                                 })
                             }
+                            vm.feature_processing = false
                         },
                         error: function (xhr,status,message) {
                             vm.warning = true
+                            vm.feature_processing = false
                             alert(xhr.status + " : " + (xhr.responseText || message))
                         },
                         xhrFields: {
                             withCredentials: true
                         }
                     })
-                    
+                    }
                     return false
                 }
             });
