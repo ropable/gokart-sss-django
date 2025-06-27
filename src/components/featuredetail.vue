@@ -42,7 +42,10 @@
         return this.layers
       }
     },
-    watch:{
+    watch: {
+        'active.olLayers': function () {
+            this.set_featureinfo_layer();
+        }
     },
     // methods callable from inside the template
     methods: {
