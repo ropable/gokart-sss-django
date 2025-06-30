@@ -1,6 +1,7 @@
 # Prepare the base environment.
 FROM ubuntu:24.04 AS builder_base_govapp
-MAINTAINER asi@dbca.wa.gov.au
+LABEL org.opencontainers.image.authors=asi@dbca.wa.gov.au
+LABEL org.opencontainers.image.source=https://github.com/dbca-wa/gokart-sss-django
 SHELL ["/bin/bash", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 #ENV DEBUG=True
@@ -13,15 +14,14 @@ ENV EMAIL_INSTANCE='DEV'
 ENV SECRET_KEY="ThisisNotRealKey"
 ENV SITE_DOMAIN='dbca.wa.gov.au'
 
-
 RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install --no-install-recommends -y curl wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn
-RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice virtualenv 
+RUN apt-get install --no-install-recommends -y libpq-dev patch libreoffice virtualenv
 RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim  sudo
 RUN apt-get install --no-install-recommends -y bzip2 pdftk unzip
-RUN apt-get install --no-install-recommends -y software-properties-common 
+RUN apt-get install --no-install-recommends -y software-properties-common
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install GDAL
@@ -114,4 +114,3 @@ RUN chmod 777 /app/tmp/
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
 CMD ["/bin/bash", "-c", "/startup.sh"]
-
